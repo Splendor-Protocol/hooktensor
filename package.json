@@ -1,0 +1,30 @@
+{
+  "name": "hooktensor",
+  "version": "0.0.1",
+  "main": "index.js",
+  "repository": "git@github.com:opentensor/hooktensor.git",
+  "author": "Opentensor Foundation <cameron@opentensor.ai>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "node dist/index.js",
+    "build": "yarn generate:defs && yarn generate:meta && yarn tsc",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
+    "generate:defs": "ts-node --skip-project node_modules/.bin/polkadot-types-from-defs --package hooktensor/interfaces --input ./src/interfaces --endpoint wss://archivelb.nakamoto.opentensor.ai:9943",
+    "generate:meta": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint wss://archivelb.nakamoto.opentensor.ai:9943 --output ./src/interfaces --strict"
+  },
+  "dependencies": {
+    "@polkadot/api": "^9.5.2",
+    "@polkadot/rpc-provider": "^9.5.2",
+    "@polkadot/types": "^9.5.2",
+    "axios": "^1.1.3",
+    "yargs": "^17.6.0"
+  },
+  "devDependencies": {
+    "@polkadot/typegen": "^9.5.2",
+    "@types/yargs": "^17.0.13",
+    "nodemon": "^2.0.20",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.8.4"
+  }
+}
