@@ -6,6 +6,10 @@ import { Option } from '@polkadot/types';
 import axios from "axios";
 import { NeuronMetadata } from './interfaces/subtensorModule';
 
+const block_time = 12; // seconds
+const difficultyFormatter = Intl.NumberFormat('en', { notation: 'compact', maximumSignificantDigits: 2 });
+const halving_block = 10.5e6; // block 10.5M is the halvening
+
 function get_provider_from_url(url: string): WsProvider  {
     const provider = new WsProvider(url);
     return provider;
@@ -139,12 +143,71 @@ interface Meta {
     coldkey: string;
 }
 
+async function watchForEpoch(api: ApiPromise, webhook_url: string) {
+    let current_block: number = 0;
+    let lastMechansimStepBlock: number = 0;
+    console.log("Getting initial epoch info...");
+    const blocksPerStep: number = ((await api.query.subtensorModule.blocksPerStep())).toNumber();
+    current_block = (await api.rpc.chain.getHeader()).number.toNumber();
+    lastMechansimStepBlock = (await api.query.subtensorModule.lastMechansimStepBlock()).toNumber();
+    console.log("Done getting initial epoch info");
+
+    const blocks_till_next_epoch = blocksPerStep - (current_block - lastMechansimStepBlock);
+    await sleep(blocks_till_next_epoch * block_time * 1000); // sleep until next epoch
+
+    setInterval(async () => {
+        console.log("Getting current block...");
+        current_block = (await api.rpc.chain.getHeader()).number.toNumber();
+        console.log(`Current block: ${current_block}`);
+        if (current_block - lastMechansimStepBlock >= blocksPerStep) {
+            console.log("New epoch!");
+            // update lastMechansimStepBlock
+            lastMechansimStepBlock = (await api.query.subtensorModule.lastMechansimStepBlock()).toNumber();
+            console.log("Posting to webhook...");
+            let message = "New network epoch!\n" +
+                `Current block: ${lastMechansimStepBlock}\n` +
+                `Blocks until next halving: ${difficultyFormatter.format(halving_block - current_block)}`;
+
+            post_to_webhook(
+                webhook_url,
+                message
+            );
+        }
+    }, blocksPerStep * block_time * 1000); // check every epoch
+}
+
+async function watchForDifficulty(api: ApiPromise, webhook_url: string) {
+    console.log("Getting initial difficulty info...");
+    let current_difficulty: number = await getDifficulty(api);
+    const current_block: number = (await api.rpc.chain.getHeader()).number.toNumber();
+    const blocksPerStep: number = ((await api.query.subtensorModule.blocksPerStep())).toNumber();
+    let lastDifficultyAdjustmentBlock: number = ((await api.query.subtensorModule.lastDifficultyAdjustmentBlock())).toNumber();
+    console.log("Done getting initial difficulty info.");
+
+    const blocks_till_next_difficulty = blocksPerStep - (current_block - lastDifficultyAdjustmentBlock);
+    await sleep(blocks_till_next_difficulty * block_time * 1000); // sleep until next difficulty adjustment
+
+    setInterval(async () => {
+        console.log("Checking for difficulty change...");
+        let new_difficulty = await getDifficulty(api);
+        if (new_difficulty !== current_difficulty) {
+            console.info("Difficulty changed!");
+            console.info(`New difficulty: ${new_difficulty}`);
+            console.info("Posting to webhook...");
+            let message = `Difficulty changed from ${difficultyFormatter.format(current_difficulty)} to ${difficultyFormatter.format(new_difficulty)}`;
+            post_to_webhook(
+                webhook_url,
+                message
+            );
+            current_difficulty = new_difficulty;
+        }
+        console.log("Done.");
+    }, blocksPerStep * block_time * 1000); // check every difficulty adjustment
+}
+
 export async function watch(url: string, webhook_url: string, interval: number) {
     let api = get_api_from_url(url);
     let current_meta: Meta[] = [];
-    let current_difficulty: number = 0;
-    let current_block: number = 0;
-    let lastMechansimStepBlock: number = 0;
 
     // Wait for the API to be connected to the node
     try {
@@ -163,13 +226,12 @@ export async function watch(url: string, webhook_url: string, interval: number) 
             uid: neuron.uid
         });
     });
-    current_difficulty = await getDifficulty(api);
-    current_block = (await api.rpc.chain.getHeader()).number.toNumber();
-    lastMechansimStepBlock = (await api.query.subtensorModule.lastMechansimStepBlock()).toNumber();
-
     console.log("Done...");
 
-    // watch for changes
+    watchForEpoch(api, webhook_url); // watch for new epochs
+    watchForDifficulty(api, webhook_url); // watch for difficulty changes
+
+    // watch for changes in metagraph to detect registration changes
     while (true) {
         console.log(`Sleeping for ${interval/1000} seconds`);
         await sleep(interval);
@@ -213,38 +275,6 @@ export async function watch(url: string, webhook_url: string, interval: number) 
         });
 
         current_meta = new_meta;
-        
-        console.log("Checking for difficulty change...");
-        let new_difficulty = await getDifficulty(api);
-        if (new_difficulty !== current_difficulty) {
-            console.info("Difficulty changed!");
-            console.info(`New difficulty: ${new_difficulty}`);
-            console.info("Posting to webhook...");
-            let message = `Difficulty changed from ${current_difficulty} to ${new_difficulty}`;
-            post_to_webhook(
-                webhook_url,
-                message
-            );
-            current_difficulty = new_difficulty;
-        }
-        console.log("Done.");
-
-        console.log("Get current block...");
-        current_block = (await api.rpc.chain.getHeader()).number.toNumber();
-        console.log(`Current block: ${current_block}`);
-        if (current_block - lastMechansimStepBlock >= 100) {
-            console.log("New epoch!");
-            // update lastMechansimStepBlock
-            lastMechansimStepBlock = (await api.query.subtensorModule.lastMechansimStepBlock()).toNumber();
-            console.log("Posting to webhook...");
-            let message = "New network epoch!\n" +
-                `Current block: ${lastMechansimStepBlock}`;
-
-            post_to_webhook(
-                webhook_url,
-                message
-            );
-        }
     }
 
 }
