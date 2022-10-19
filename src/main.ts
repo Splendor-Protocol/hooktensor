@@ -144,6 +144,7 @@ export async function watch(url: string, webhook_url: string, interval: number) 
     let current_meta: Meta[] = [];
     let current_difficulty: number = 0;
     let current_block: number = 0;
+    let lastMechansimStepBlock: number = 0;
 
     // Wait for the API to be connected to the node
     try {
@@ -164,6 +165,7 @@ export async function watch(url: string, webhook_url: string, interval: number) 
     });
     current_difficulty = await getDifficulty(api);
     current_block = (await api.rpc.chain.getHeader()).number.toNumber();
+    lastMechansimStepBlock = (await api.query.subtensorModule.lastMechansimStepBlock()).toNumber();
 
     console.log("Done...");
 
@@ -230,11 +232,13 @@ export async function watch(url: string, webhook_url: string, interval: number) 
         console.log("Get current block...");
         current_block = (await api.rpc.chain.getHeader()).number.toNumber();
         console.log(`Current block: ${current_block}`);
-        if ((current_block - 2508191) % 100 == 0) {
+        if (current_block - lastMechansimStepBlock >= 100) {
             console.log("New epoch!");
+            // update lastMechansimStepBlock
+            lastMechansimStepBlock = (await api.query.subtensorModule.lastMechansimStepBlock()).toNumber();
             console.log("Posting to webhook...");
             let message = "New network epoch!\n" +
-                "Current block: ${current_block}";
+                `Current block: ${lastMechansimStepBlock}`;
 
             post_to_webhook(
                 webhook_url,
