@@ -164,9 +164,11 @@ async function watchForEpoch(api: ApiPromise, webhook_url: string) {
             // update lastMechansimStepBlock
             lastMechansimStepBlock = (await api.query.subtensorModule.lastMechansimStepBlock()).toNumber();
             console.log("Posting to webhook...");
+            const blocks_per_day  = (24 * 60 * 60) / block_time; // seconds per day / block time
+            const days_until = (halving_block - current_block) / blocks_per_day;
             let message = "New network epoch!\n" +
                 `Current block: ${lastMechansimStepBlock}\n` +
-                `Blocks until next halving: ${difficultyFormatter.format(halving_block - current_block)}`;
+                `Days until next halving: ${difficultyFormatter.format(days_until)}`;
 
             post_to_webhook(
                 webhook_url,
