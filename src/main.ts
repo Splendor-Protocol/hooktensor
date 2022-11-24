@@ -182,11 +182,11 @@ async function watchForDifficulty(api: ApiPromise, webhook_url: string) {
     console.log("Getting initial difficulty info...");
     let current_difficulty: number = await getDifficulty(api);
     const current_block: number = (await api.rpc.chain.getHeader()).number.toNumber();
-    const blocksPerStep: number = ((await api.query.subtensorModule.blocksPerStep())).toNumber();
+    const adjustmentInterval: number = ((await api.query.subtensorModule.adjustmentInterval())).toNumber();
     let lastDifficultyAdjustmentBlock: number = ((await api.query.subtensorModule.lastDifficultyAdjustmentBlock())).toNumber();
     console.log("Done getting initial difficulty info.");
 
-    const blocks_till_next_difficulty = blocksPerStep - (current_block - lastDifficultyAdjustmentBlock);
+    const blocks_till_next_difficulty = adjustmentInterval - (current_block - lastDifficultyAdjustmentBlock);
     await sleep(blocks_till_next_difficulty * block_time * 1000); // sleep until next difficulty adjustment
 
     setInterval(async () => {
@@ -204,7 +204,7 @@ async function watchForDifficulty(api: ApiPromise, webhook_url: string) {
             current_difficulty = new_difficulty;
         }
         console.log("Done.");
-    }, blocksPerStep * block_time * 1000); // check every difficulty adjustment
+    }, adjustmentInterval * block_time * 1000); // check every difficulty adjustment
 }
 
 export async function watch(url: string, webhook_url: string, interval: number) {
