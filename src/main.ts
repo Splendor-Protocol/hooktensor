@@ -2,11 +2,16 @@ import './interfaces/augment-api';
 import './interfaces/augment-types';
 import { ApiPromise } from "@polkadot/api/promise/Api";
 import { WsProvider }  from "@polkadot/rpc-provider/ws";
+import { formatBalance } from '@polkadot/util';
 import { NeuronInfoLite, SubnetInfo } from './interfaces';
 import axios from "axios";
 
 const block_time = 12; // seconds
 const difficultyFormatter = Intl.NumberFormat('en', { notation: 'compact', maximumSignificantDigits: 2 });
+const balanceFormatter = (balance_num: number) => formatBalance(
+  balance_num,
+  { withSi: false, forceUnit: 'TAO', decimals: 9 }
+);
 const halving_block = 10.5e6; // block 10.5M is the halvening
 
 function get_provider_from_url(url: string): WsProvider  {
@@ -218,6 +223,16 @@ async function getDifficulty(api: ApiPromise): Promise<{ [key: string]: number}>
     return difficulty;
 }
 
+async function getBurnAmounts(api: ApiPromise): Promise<{ [key: string]: number}> {
+  const netuids = await getNetuids(api);
+  let burn_amounts: { [key: string]: number} = {};
+  for (let netuid of netuids) {
+      const diff = (await (api.query.subtensorModule as any).brun(netuid)).toNumber();
+      burn_amounts[netuid.toString()] = diff;
+  }
+  return burn_amounts;
+}
+
 function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -377,6 +392,48 @@ async function watchForDifficulty(api: ApiPromise, webhook_url: string) {
     }, adjustmentInterval * block_time * 1000); // check every difficulty adjustment
 }
 
+async function watchForBurnAmount(api: ApiPromise, webhook_url: string) {
+  console.log("Getting initial burn amount info...");
+  let current_burn_amounts = await getBurnAmounts(api);
+  
+  const current_block: number = (await api.rpc.chain.getHeader()).number.toNumber();
+  const netuids = await getNetuids(api);
+  let minAdjustmentInterval: number = Number.MAX_SAFE_INTEGER;
+  let minNetuid: number = -1;
+  for (const netuid in netuids) {
+      const adjustmentInterval_ = ((await (api.query.subtensorModule as any).adjustmentInterval(netuid))).toNumber();
+      if (adjustmentInterval_ < minAdjustmentInterval) {
+          minAdjustmentInterval = adjustmentInterval_;
+          minNetuid = netuid as any as number;
+      }
+  }
+  const adjustmentInterval: number = minAdjustmentInterval;
+  let lastDifficultyAdjustmentBlock: number = ((await (api.query.subtensorModule as any).lastAdjustmentBlock(minNetuid))).toNumber();
+  console.log("Done getting initial difficulty info.");
+
+  const blocks_till_next_difficulty = adjustmentInterval - (current_block - lastDifficultyAdjustmentBlock);
+  await sleep(blocks_till_next_difficulty * block_time * 1000); // sleep until next difficulty adjustment
+
+  setInterval(async () => {
+      console.log("Checking for burn amount changes...");
+      let new_burn_amounts = await getBurnAmounts(api);
+      for (let netuid in new_burn_amounts) {
+          if (new_burn_amounts[netuid] !== current_burn_amounts[netuid]) {
+              console.info("Burn amount changed for netuid " + netuid);
+              console.info(`New burn amount: ${new_burn_amounts[netuid]}`);
+              console.info("Posting to webhook...");
+              let message = `Burn Amount changed from ${balanceFormatter(current_burn_amounts[netuid])} to ${balanceFormatter(new_burn_amounts[netuid])}`;
+              post_to_webhook(
+                  webhook_url,
+                  message
+              );
+              current_burn_amounts[netuid] = new_burn_amounts[netuid];
+          }
+      }
+      console.log("Done.");
+  }, adjustmentInterval * block_time * 1000); // check every difficulty adjustment
+}
+
 export async function watch(url: string, webhook_url: string, interval: number) {
     let api = await get_api_from_url(url);
     let current_meta: Meta;
@@ -395,6 +452,7 @@ export async function watch(url: string, webhook_url: string, interval: number) 
 
     //watchForEpoch(api, webhook_url); // watch for new epochs
     watchForDifficulty(api, webhook_url); // watch for difficulty changes
+    watchForBurnAmount(api, webhook_url); // watch for burn amount changes
 
     // watch for changes in metagraph to detect registration changes
     while (true) {
