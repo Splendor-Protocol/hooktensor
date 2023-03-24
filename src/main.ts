@@ -508,7 +508,7 @@ export async function watch(url: string, webhook_url: string, interval: number) 
               message
             );
             current_meta[netuid] = new_meta[netuid];
-          }
+          } else {
             for (let uid: number = 0; uid < new_meta[netuid].length; uid++) {
                 if (current_meta[netuid][uid].hotkey !== new_meta[netuid][uid].hotkey) {
                     // hotkey changed
@@ -523,6 +523,7 @@ export async function watch(url: string, webhook_url: string, interval: number) 
                     diff.push(diff_);
                 }
             }
+          }
         }
         console.info(`Found ${diff.length} changes`);
         if (diff.length > 0) {
