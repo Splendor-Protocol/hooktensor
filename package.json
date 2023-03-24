@@ -1,6 +1,6 @@
 {
   "name": "hooktensor",
-  "version": "0.0.1",
+  "version": "2.0.0",
   "main": "index.js",
   "repository": "git@github.com:opentensor/hooktensor.git",
   "author": "Opentensor Foundation <cameron@opentensor.ai>",

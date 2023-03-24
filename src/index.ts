@@ -6,12 +6,12 @@ import { watch } from './main';
 yargs(hideBin(process.argv))
   .scriptName("hooktensor")
   .usage('$0 <cmd> [args]')
-  .command('watch', 'Hooktensor Watcher v1.0.0', (yargs) => {
+  .command('watch', 'Hooktensor Watcher v2.0.0', (yargs) => {
     yargs.options({
       'url': {
         alias: 'u',
         type: 'string',
-        default: 'ws://AtreusLB-2c6154f73e6429a9.elb.us-east-2.amazonaws.com:9944',
+        default: 'wss://entrypoint-finney.opentensor.ai:443',
         describe: 'the url of the substrate node to sync from',
         demandOption: false,
       },

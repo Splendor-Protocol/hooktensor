@@ -174,6 +174,8 @@ declare module '@polkadot/api-base/types/storage' {
       validatorEpochLen: AugmentedQuery<ApiType, () => Observable<u64>, []>;
       validatorEpochsPerReset: AugmentedQuery<ApiType, () => Observable<u64>, []>;
       validatorExcludeQuantile: AugmentedQuery<ApiType, () => Observable<u8>, []>;
+      validatorLogitsDivergence: AugmentedQuery<ApiType, () => Observable<u64>, []>;
+      validatorPruneLen: AugmentedQuery<ApiType, () => Observable<u64>, []>;
       validatorSequenceLength: AugmentedQuery<ApiType, () => Observable<u64>, []>;
     };
     sudo: {

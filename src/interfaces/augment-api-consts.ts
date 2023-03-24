@@ -136,6 +136,14 @@ declare module '@polkadot/api-base/types/consts' {
        **/
       initialValidatorExcludeQuantile: u8 & AugmentedConst<ApiType>;
       /**
+       * Initial validator logits divergence penalty/threshold.
+       **/
+      initialValidatorLogitsDivergence: u64 & AugmentedConst<ApiType>;
+      /**
+       * Initial validator context pruning length.
+       **/
+      initialValidatorPruneLen: u64 & AugmentedConst<ApiType>;
+      /**
        * Default Batch size.
        **/
       initialValidatorSequenceLen: u64 & AugmentedConst<ApiType>;

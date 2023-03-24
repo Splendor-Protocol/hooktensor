@@ -199,6 +199,14 @@ declare module '@polkadot/api-base/types/events' {
        **/
       ValidatorExcludeQuantileSet: AugmentedEvent<ApiType, [u8]>;
       /**
+       * --- Event created when the validator logits divergence value has been set.
+       **/
+      ValidatorLogitsDivergenceSet: AugmentedEvent<ApiType, [u64]>;
+      /**
+       * --- Event created when the validator pruning length has been set.
+       **/
+      ValidatorPruneLenSet: AugmentedEvent<ApiType, [u64]>;
+      /**
        * --- Event created when the sequence length has been set.
        **/
       ValidatorSequenceLengthSet: AugmentedEvent<ApiType, [u64]>;

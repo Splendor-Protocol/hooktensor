@@ -268,6 +268,8 @@ export default {
       ScalingLawPowerSet: 'u8',
       SynergyScalingLawPowerSet: 'u8',
       ValidatorExcludeQuantileSet: 'u8',
+      ValidatorPruneLenSet: 'u64',
+      ValidatorLogitsDivergenceSet: 'u64',
       ValidatorEpochLenSet: 'u64',
       ValidatorEpochsPerResetSet: 'u64',
       ValidatorBatchSizeSet: 'u64',
@@ -729,7 +731,13 @@ export default {
         synergyScalingLawPower: 'u8',
       },
       sudo_set_validator_exclude_quantile: {
-        validatorExcludeQuantile: 'u8'
+        validatorExcludeQuantile: 'u8',
+      },
+      sudo_set_validator_prune_len: {
+        validatorPruneLen: 'u64',
+      },
+      sudo_set_validator_logits_divergence: {
+        validatorLogitsDivergence: 'u64'
       }
     }
   },

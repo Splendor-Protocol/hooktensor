@@ -337,6 +337,8 @@ declare module '@polkadot/api-base/types/submittable' {
       sudoSetValidatorEpochLen: AugmentedSubmittable<(validatorEpochLen: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64]>;
       sudoSetValidatorEpochsPerReset: AugmentedSubmittable<(validatorEpochsPerReset: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64]>;
       sudoSetValidatorExcludeQuantile: AugmentedSubmittable<(validatorExcludeQuantile: u8 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u8]>;
+      sudoSetValidatorLogitsDivergence: AugmentedSubmittable<(validatorLogitsDivergence: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64]>;
+      sudoSetValidatorPruneLen: AugmentedSubmittable<(validatorPruneLen: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64]>;
       sudoSetValidatorSequenceLength: AugmentedSubmittable<(validatorSequenceLength: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64]>;
       sudoTargetRegistrationsPerInterval: AugmentedSubmittable<(targetRegistrationsPerInterval: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64]>;
     };

@@ -2,9 +2,8 @@ import './interfaces/augment-api';
 import './interfaces/augment-types';
 import { ApiPromise } from "@polkadot/api/promise/Api";
 import { WsProvider }  from "@polkadot/rpc-provider/ws";
-import { Option } from '@polkadot/types';
+import { NeuronInfoLite, SubnetInfo } from './interfaces';
 import axios from "axios";
-import { NeuronMetadata } from './interfaces/subtensorModule';
 
 const block_time = 12; // seconds
 const difficultyFormatter = Intl.NumberFormat('en', { notation: 'compact', maximumSignificantDigits: 2 });
@@ -15,30 +14,207 @@ function get_provider_from_url(url: string): WsProvider  {
     return provider;
 }
 
-function get_api_from_url(url: string): ApiPromise {
+async function get_api_from_url(url: string): Promise<ApiPromise> {
     const provider = get_provider_from_url(url);
-    const api = new ApiPromise({
-        provider
-    });
+    const api = await ApiPromise.create({
+        types: {
+          Balance: 'u64',
+          PrometheusInfo: {
+            block: 'u64', // --- Prometheus serving block.
+            version: 'u32', // --- Prometheus version.
+            ip: 'u128', // --- Prometheus u128 encoded ip address of type v6 or v4. serialized to string.
+            port: 'u16', // --- Prometheus u16 encoded port.
+            ip_type: 'u8', // --- Prometheus ip type, 4 for ipv4 and 6 for ipv6.
+          },
+          AxonInfo: {
+            block: 'u64', // --- Axon serving block.
+            version: 'u32', // --- Axon version
+            ip: 'u128', // --- Axon u128 encoded ip address of type v6 or v4. serialized to string.
+            port: 'u16', // --- Axon u16 encoded port.
+            ip_type: 'u8', // --- Axon ip type, 4 for ipv4 and 6 for ipv6.
+            protocol: 'u8', // --- Axon protocol. TCP, UDP, other.
+            placeholder1: 'u8', // --- Axon proto placeholder 1.
+            placeholder2: 'u8', // --- Axon proto placeholder 1.
+          },
+          NeuronInfo: {
+            hotkey: 'AccountId',
+            coldkey: 'AccountId',
+            uid: 'Compact<u16>',
+            netuid: 'Compact<u16>',
+            active: 'bool',
+            axon_info: 'AxonInfo',
+            prometheus_info: 'PrometheusInfo',
+            stake: 'Vec<(AccountId, Compact<u64>)>', // map of coldkey to stake on this neuron/hotkey (includes delegations)
+            rank: 'Compact<u16>',
+            emission: 'Compact<u64>',
+            incentive: 'Compact<u16>',
+            consensus: 'Compact<u16>',
+            trust: 'Compact<u16>',
+            validator_trust: 'Compact<u16>',
+            dividends: 'Compact<u16>',
+            last_update: 'Compact<u64>',
+            validator_permit: 'bool',
+            weights: 'Vec<(Compact<u16>, Compact<u16>)>', // Vec of (uid, weight)
+            bonds: 'Vec<(Compact<u16>, Compact<u16>)>', // Vec of (uid, bond)
+            pruning_score: 'Compact<u16>'
+          },
+          NeuronInfoLite: {
+            hotkey: 'AccountId',
+            coldkey: 'AccountId',
+            uid: 'Compact<u16>',
+            netuid: 'Compact<u16>',
+            active: 'bool',
+            axon_info: 'AxonInfo',
+            prometheus_info: 'PrometheusInfo',
+            stake: 'Vec<(AccountId, Compact<u64>)>', // map of coldkey to stake on this neuron/hotkey (includes delegations)
+            rank: 'Compact<u16>',
+            emission: 'Compact<u64>',
+            incentive: 'Compact<u16>',
+            consensus: 'Compact<u16>',
+            trust: 'Compact<u16>',
+            validator_trust: 'Compact<u16>',
+            dividends: 'Compact<u16>',
+            last_update: 'Compact<u64>',
+            validator_permit: 'bool',
+            pruning_score: 'Compact<u16>'
+          },
+          DelegateInfo: {
+            delegate_ss58: 'AccountId',
+            take: 'Compact<u16>',
+            nominators: 'Vec<(AccountId, Compact<u64>)>', // map of nominator_ss58 to stake amount
+            owner_ss58: 'AccountId',
+            registrations: 'Vec<Compact<u16>>', // Vec of netuid this delegate is registered on
+            validator_permits: 'Vec<Compact<u16>>', // Vec of netuid this delegate has validator permit on
+            return_per_1000: 'Compact<u64>', // Delegators current daily return per 1000 TAO staked minus take fee
+            total_daily_return: 'Compact<u64>', // Delegators current daily return
+          },
+          SubnetInfo: {
+            netuid: 'Compact<u16>',
+            rho: 'Compact<u16>',
+            kappa: 'Compact<u16>',
+            difficulty: 'Compact<u64>',
+            immunity_period: 'Compact<u16>',
+            validator_batch_size: 'Compact<u16>',
+            validator_sequence_length: 'Compact<u16>',
+            validator_epochs_per_reset: 'Compact<u16>',
+            validator_epoch_length: 'Compact<u16>',
+            max_allowed_validators: 'Compact<u16>',
+            min_allowed_weights: 'Compact<u16>',
+            max_weights_limit: 'Compact<u16>',
+            scaling_law_power: 'Compact<u16>',
+            synergy_scaling_law_power: 'Compact<u16>',
+            subnetwork_n: 'Compact<u16>',
+            max_allowed_uids: 'Compact<u16>',
+            blocks_since_last_step: 'Compact<u64>',
+            tempo: 'Compact<u16>',
+            network_modality: 'Compact<u16>',
+            network_connect: 'Vec<[u16; 2]>',
+            emission_values: 'Compact<u64>',
+            burn: 'Compact<u64>',
+          }
+        },
+        rpc: {
+          neuronInfo: {
+            getNeuronsLite: {
+              description: 'Get neurons lite',
+              params: [
+                {
+                  name: 'netuid',
+                  type: 'u16',
+                }
+              ],
+              type: 'Vec<u8>',
+            },
+            getNeuronLite: {
+              description: 'Get neuron lite',
+              params: [
+                {
+                  name: 'netuid',
+                  type: 'u16',
+                },
+                {
+                  name: 'uid',
+                  type: 'u16',
+                }
+              ],
+              type: 'Vec<u8>',
+            },
+            getNeurons: {
+              description: 'Get neurons',
+              params: [
+                {
+                  name: 'netuid',
+                  type: 'u16',
+                }
+              ],
+              type: 'Vec<u8>',
+            },
+            getNeuron: {
+              description: 'Get neuron',
+              params: [
+                {
+                  name: 'netuid',
+                  type: 'u16',
+                },
+                {
+                  name: 'uid',
+                  type: 'u16',
+                }
+              ],
+              type: 'Vec<u8>',
+            },
+          },
+          delegateInfo: {
+            getDelegates: {
+              description: 'Get delegates info',
+              params: [],
+              type: 'Vec<u8>',
+            },
+          },
+          subnetInfo: {
+            getSubnetsInfo: {
+              description: 'Get subnets info',
+              params: [],
+              type: 'Vec<u8>',
+            },
+            getSubnetInfo: {
+              description: 'Get subnet info',
+              params: [
+                {
+                  name: 'netuid',
+                  type: 'u16',
+                }
+              ],
+              type: 'Vec<u8>',
+            },
+          },
+        },
+        provider: provider,
+      });
     return api;
 }
 
-async function getNeurons(api: ApiPromise, page: number, pageSize: number): Promise<Option<NeuronMetadata>[]> {
+async function getNeurons(api: ApiPromise, netuid: number): Promise<NeuronInfoLite[]> {
     return new Promise((resolve, reject) => {
-      const indexStart = page * pageSize;
-      (api.query.subtensorModule.neurons.multi(
-        Array.from(new Array(pageSize), (_, i) => i + indexStart)
-      ))
-      .then(resolve)
-      .catch(err => {
+      (api.rpc as any).neuronInfo.getNeuronsLite(netuid)
+      .then((neurons_bytes: any) => {
+        let neurons = api.createType('Vec<NeuronInfoLite>', neurons_bytes) as any;
+        resolve(neurons.toJSON() as NeuronInfoLite[]);
+      })
+      .catch((err: any) => {
         console.log(err)
         reject(err);
       });
     })
 };
 
-async function getDifficulty(api: ApiPromise): Promise<number> {
-    const difficulty = ((await api.query.subtensorModule.difficulty())).toNumber();
+async function getDifficulty(api: ApiPromise): Promise<{ [key: string]: number}> {
+    const netuids = await getNetuids(api);
+    let difficulty: { [key: string]: number} = {};
+    for (let netuid of netuids) {
+        const diff = (await (api.query.subtensorModule as any).difficulty(netuid)).toNumber();
+        difficulty[netuid.toString()] = diff;
+    }
     return difficulty;
 }
 
@@ -49,50 +225,32 @@ function sleep(ms: number) {
 interface NeuronData {
     hotkey: string;
     coldkey: string;
-    stake: BigInt;
-    dividends: BigInt;
-    emission: BigInt;
-    incentive: BigInt;
-    trust: BigInt;
-    rank: BigInt;
-    consensus: BigInt;
     uid: number;
 }
 
-async function refreshMeta(api: ApiPromise): Promise<NeuronData[]> {
-    const numNeurons = ((await api.query.subtensorModule.n())).toNumber();
+async function getNetuids(api: ApiPromise): Promise<number[]> {
+    let subnets_info_bytes = await (api.rpc as any).subnetInfo.getSubnetsInfo();
+    let subnets_info = api.createType('Vec<Option<SubnetInfo>>', subnets_info_bytes) as any;
+    let netuids: number[] = subnets_info.toJSON().map((subnet_info: SubnetInfo) => subnet_info.netuid as number);
+    return netuids;
+}
 
-    let _neurons: NeuronData[] = [];
-    const numPages = 16;
-    let pageSize = Math.ceil(numNeurons / numPages);
-    const last_page_length = numNeurons % pageSize;
-    for (let page = 0; page < numPages; page++) {
-        if (page === numPages - 1) {
-            // if last page, use the last_page_length
-            if (last_page_length > 0) {
-                // if last_page_length is 0, then the last page is a full page
-                pageSize = last_page_length; 
-            }
-        }
-        const result = await getNeurons(api, page, pageSize)
-    let neurons_: NeuronData[] = result.map((result, j) => {
-        const indexStart = page * pageSize;
-        const neuron = result.value;
-        return {
-            hotkey: neuron.hotkey.toString(),
-            coldkey: neuron.coldkey.toString(),
-            stake: neuron.stake.toBigInt(),
-            dividends: neuron.dividends.toBigInt(),
-            emission: neuron.emission.toBigInt(),
-            incentive: neuron.incentive.toBigInt(),
-            trust: neuron.trust.toBigInt(),
-            rank: neuron.rank.toBigInt(),
-            consensus: neuron.consensus.toBigInt(),
-            uid: j + indexStart
-        };
-    });
-    _neurons = _neurons.concat(neurons_);
+async function refreshMeta(api: ApiPromise): Promise<Meta> {
+    let _neurons: Meta = {};
+    let netuids = await getNetuids(api);
+    
+    for (const netuid in netuids) {
+        const result = await getNeurons(api, netuid as any as number)
+        let neurons_: NeuronData[] = result.map((neuron, j) => {
+            return {
+                hotkey: neuron.hotkey.toString(),
+                coldkey: neuron.coldkey.toString(),
+                uid: j
+            };
+        });
+        _neurons[netuid.toString()] = neurons_;
     }
+    
     return _neurons;
 }
 
@@ -126,10 +284,11 @@ interface Diff {
     old_coldkey: string;
     old_hotkey: string;
     uid: number;
+    netuid: string;
 }
 
 function getMessage(diff: Diff): string {
-    const message = `UID ${diff.uid}\n` +
+    const message = `Neuron (${diff.netuid}; ${diff.uid})\n` +
         `   New hotkey:\`${diff.new_hotkey}\`\n` +
         `   New coldkey:\`${diff.new_coldkey}\`\n` +
         `   Old hotkey:\`${diff.old_hotkey}\`\n` +
@@ -138,9 +297,7 @@ function getMessage(diff: Diff): string {
 }
 
 interface Meta {
-    uid: number;
-    hotkey: string;
-    coldkey: string;
+    [key: string]: NeuronData[]; // netuid -> NeuronData[]
 }
 
 async function watchForEpoch(api: ApiPromise, webhook_url: string) {
@@ -180,10 +337,21 @@ async function watchForEpoch(api: ApiPromise, webhook_url: string) {
 
 async function watchForDifficulty(api: ApiPromise, webhook_url: string) {
     console.log("Getting initial difficulty info...");
-    let current_difficulty: number = await getDifficulty(api);
+    let current_difficulties = await getDifficulty(api);
+    
     const current_block: number = (await api.rpc.chain.getHeader()).number.toNumber();
-    const adjustmentInterval: number = ((await api.query.subtensorModule.adjustmentInterval())).toNumber();
-    let lastDifficultyAdjustmentBlock: number = ((await api.query.subtensorModule.lastDifficultyAdjustmentBlock())).toNumber();
+    const netuids = await getNetuids(api);
+    let minAdjustmentInterval: number = Number.MAX_SAFE_INTEGER;
+    let minNetuid: number = -1;
+    for (const netuid in netuids) {
+        const adjustmentInterval_ = ((await (api.query.subtensorModule as any).adjustmentInterval(netuid))).toNumber();
+        if (adjustmentInterval_ < minAdjustmentInterval) {
+            minAdjustmentInterval = adjustmentInterval_;
+            minNetuid = netuid as any as number;
+        }
+    }
+    const adjustmentInterval: number = minAdjustmentInterval;
+    let lastDifficultyAdjustmentBlock: number = ((await (api.query.subtensorModule as any).lastAdjustmentBlock(minNetuid))).toNumber();
     console.log("Done getting initial difficulty info.");
 
     const blocks_till_next_difficulty = adjustmentInterval - (current_block - lastDifficultyAdjustmentBlock);
@@ -191,25 +359,27 @@ async function watchForDifficulty(api: ApiPromise, webhook_url: string) {
 
     setInterval(async () => {
         console.log("Checking for difficulty change...");
-        let new_difficulty = await getDifficulty(api);
-        if (new_difficulty !== current_difficulty) {
-            console.info("Difficulty changed!");
-            console.info(`New difficulty: ${new_difficulty}`);
-            console.info("Posting to webhook...");
-            let message = `Difficulty changed from ${difficultyFormatter.format(current_difficulty)} to ${difficultyFormatter.format(new_difficulty)}`;
-            post_to_webhook(
-                webhook_url,
-                message
-            );
-            current_difficulty = new_difficulty;
+        let new_difficulties = await getDifficulty(api);
+        for (let netuid in new_difficulties) {
+            if (new_difficulties[netuid] !== current_difficulties[netuid]) {
+                console.info("Difficulty changed for netuid " + netuid);
+                console.info(`New difficulty: ${new_difficulties[netuid]}`);
+                console.info("Posting to webhook...");
+                let message = `Difficulty changed from ${difficultyFormatter.format(current_difficulties[netuid])} to ${difficultyFormatter.format(new_difficulties[netuid])}`;
+                post_to_webhook(
+                    webhook_url,
+                    message
+                );
+                current_difficulties[netuid] = new_difficulties[netuid];
+            }
         }
         console.log("Done.");
     }, adjustmentInterval * block_time * 1000); // check every difficulty adjustment
 }
 
 export async function watch(url: string, webhook_url: string, interval: number) {
-    let api = get_api_from_url(url);
-    let current_meta: Meta[] = [];
+    let api = await get_api_from_url(url);
+    let current_meta: Meta;
 
     // Wait for the API to be connected to the node
     try {
@@ -220,17 +390,10 @@ export async function watch(url: string, webhook_url: string, interval: number) 
     }
     console.log("Connected to entrypoint");
     console.log("Pulling initial metagraph...");
-    let metagraph = await refreshMeta(api);
-    metagraph.forEach(neuron => {
-        current_meta.push({
-            coldkey: neuron.coldkey,
-            hotkey: neuron.hotkey,
-            uid: neuron.uid
-        });
-    });
+    current_meta = await refreshMeta(api);
     console.log("Done...");
 
-    watchForEpoch(api, webhook_url); // watch for new epochs
+    //watchForEpoch(api, webhook_url); // watch for new epochs
     watchForDifficulty(api, webhook_url); // watch for difficulty changes
 
     // watch for changes in metagraph to detect registration changes
@@ -239,29 +402,24 @@ export async function watch(url: string, webhook_url: string, interval: number) 
         await sleep(interval);
         console.log("Checking for changes...");
         console.log("Pulling new metagraph...");
-        let metagraph = await refreshMeta(api);
+        let new_meta = await refreshMeta(api);
         console.log("Done...");
-        let new_meta: Meta[] = [];
-        metagraph.forEach(neuron => {
-            new_meta.push({
-                coldkey: neuron.coldkey,
-                hotkey: neuron.hotkey,
-                uid: neuron.uid
-            });
-        });
         
         const diff: Diff[] = [];
-        for (let uid: number = 0; uid < metagraph.length; uid++) {
-            if (current_meta[uid].hotkey !== new_meta[uid].hotkey) {
-                // hotkey changed
-                let diff_ = {
-                    uid: uid,
-                    old_hotkey: current_meta[uid].hotkey,
-                    new_hotkey: new_meta[uid].hotkey,
-                    old_coldkey: current_meta[uid].coldkey,
-                    new_coldkey: new_meta[uid].coldkey
-                };
-                diff.push(diff_);
+        for (let netuid in current_meta) {
+            for (let uid: number = 0; uid < new_meta[netuid].length; uid++) {
+                if (current_meta[netuid][uid].hotkey !== new_meta[netuid][uid].hotkey) {
+                    // hotkey changed
+                    let diff_ = {
+                        netuid: netuid,
+                        uid: uid,
+                        old_hotkey: current_meta[netuid][uid].hotkey,
+                        new_hotkey: new_meta[netuid][uid].hotkey,
+                        old_coldkey: current_meta[netuid][uid].coldkey,
+                        new_coldkey: new_meta[netuid][uid].coldkey,
+                    };
+                    diff.push(diff_);
+                }
             }
         }
         console.info(`Found ${diff.length} changes`);

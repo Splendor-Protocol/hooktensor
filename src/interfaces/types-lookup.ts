@@ -308,6 +308,10 @@ declare module '@polkadot/types/lookup' {
     readonly asSynergyScalingLawPowerSet: u8;
     readonly isValidatorExcludeQuantileSet: boolean;
     readonly asValidatorExcludeQuantileSet: u8;
+    readonly isValidatorPruneLenSet: boolean;
+    readonly asValidatorPruneLenSet: u64;
+    readonly isValidatorLogitsDivergenceSet: boolean;
+    readonly asValidatorLogitsDivergenceSet: u64;
     readonly isValidatorEpochLenSet: boolean;
     readonly asValidatorEpochLenSet: u64;
     readonly isValidatorEpochsPerResetSet: boolean;
@@ -319,7 +323,7 @@ declare module '@polkadot/types/lookup' {
     readonly isImmunityPeriodSet: boolean;
     readonly asImmunityPeriodSet: u64;
     readonly isResetBonds: boolean;
-    readonly type: 'SomethingStored' | 'WeightsSet' | 'NeuronRegistered' | 'AxonServed' | 'StakeAdded' | 'StakeRemoved' | 'DifficultySet' | 'BlocksPerStepSet' | 'BondsMovingAverageSet' | 'AdjustmentIntervalSet' | 'ActivityCuttoffSet' | 'TargetRegistrationsPerIntervalSet' | 'RhoSet' | 'KappaSet' | 'MaxAllowedUidsSet' | 'MinAllowedWeightsSet' | 'MaxAllowedMaxMinRatioSet' | 'MaxWeightLimitSet' | 'IncentivePruningDenominatorSet' | 'StakePruningDenominatorSet' | 'StakePruningMinSet' | 'FoundationAccountSet' | 'FoundationDistributionSet' | 'ScalingLawPowerSet' | 'SynergyScalingLawPowerSet' | 'ValidatorExcludeQuantileSet' | 'ValidatorEpochLenSet' | 'ValidatorEpochsPerResetSet' | 'ValidatorBatchSizeSet' | 'ValidatorSequenceLengthSet' | 'ImmunityPeriodSet' | 'ResetBonds';
+    readonly type: 'SomethingStored' | 'WeightsSet' | 'NeuronRegistered' | 'AxonServed' | 'StakeAdded' | 'StakeRemoved' | 'DifficultySet' | 'BlocksPerStepSet' | 'BondsMovingAverageSet' | 'AdjustmentIntervalSet' | 'ActivityCuttoffSet' | 'TargetRegistrationsPerIntervalSet' | 'RhoSet' | 'KappaSet' | 'MaxAllowedUidsSet' | 'MinAllowedWeightsSet' | 'MaxAllowedMaxMinRatioSet' | 'MaxWeightLimitSet' | 'IncentivePruningDenominatorSet' | 'StakePruningDenominatorSet' | 'StakePruningMinSet' | 'FoundationAccountSet' | 'FoundationDistributionSet' | 'ScalingLawPowerSet' | 'SynergyScalingLawPowerSet' | 'ValidatorExcludeQuantileSet' | 'ValidatorPruneLenSet' | 'ValidatorLogitsDivergenceSet' | 'ValidatorEpochLenSet' | 'ValidatorEpochsPerResetSet' | 'ValidatorBatchSizeSet' | 'ValidatorSequenceLengthSet' | 'ImmunityPeriodSet' | 'ResetBonds';
   }
 
   /** @name FrameSystemPhase (38) */
@@ -808,7 +812,15 @@ declare module '@polkadot/types/lookup' {
     readonly asSudoSetValidatorExcludeQuantile: {
       readonly validatorExcludeQuantile: u8;
     } & Struct;
-    readonly type: 'SetWeights' | 'AddStake' | 'RemoveStake' | 'ServeAxon' | 'Register' | 'SudoSetBlocksPerStep' | 'SudoSetBondsMovingAverage' | 'SudoSetDifficulty' | 'SudoSetAdjustmentInterval' | 'SudoSetActivityCutoff' | 'SudoTargetRegistrationsPerInterval' | 'SudoSetRho' | 'SudoSetKappa' | 'SudoSetMaxAllowedUids' | 'SudoSetMinAllowedWeights' | 'SudoSetMaxAllowedMaxMinRatio' | 'SudoSetMaxWeightLimit' | 'SudoSetValidatorBatchSize' | 'SudoSetValidatorSequenceLength' | 'SudoSetValidatorEpochLen' | 'SudoSetValidatorEpochsPerReset' | 'SudoSetIncentivePruningDenominator' | 'SudoSetStakePruningDenominator' | 'SudoSetStakePruningMin' | 'SudoSetImmunityPeriod' | 'SudoResetBonds' | 'SudoSetScalingLawPower' | 'SudoSetSynergyScalingLawPower' | 'SudoSetValidatorExcludeQuantile';
+    readonly isSudoSetValidatorPruneLen: boolean;
+    readonly asSudoSetValidatorPruneLen: {
+      readonly validatorPruneLen: u64;
+    } & Struct;
+    readonly isSudoSetValidatorLogitsDivergence: boolean;
+    readonly asSudoSetValidatorLogitsDivergence: {
+      readonly validatorLogitsDivergence: u64;
+    } & Struct;
+    readonly type: 'SetWeights' | 'AddStake' | 'RemoveStake' | 'ServeAxon' | 'Register' | 'SudoSetBlocksPerStep' | 'SudoSetBondsMovingAverage' | 'SudoSetDifficulty' | 'SudoSetAdjustmentInterval' | 'SudoSetActivityCutoff' | 'SudoTargetRegistrationsPerInterval' | 'SudoSetRho' | 'SudoSetKappa' | 'SudoSetMaxAllowedUids' | 'SudoSetMinAllowedWeights' | 'SudoSetMaxAllowedMaxMinRatio' | 'SudoSetMaxWeightLimit' | 'SudoSetValidatorBatchSize' | 'SudoSetValidatorSequenceLength' | 'SudoSetValidatorEpochLen' | 'SudoSetValidatorEpochsPerReset' | 'SudoSetIncentivePruningDenominator' | 'SudoSetStakePruningDenominator' | 'SudoSetStakePruningMin' | 'SudoSetImmunityPeriod' | 'SudoResetBonds' | 'SudoSetScalingLawPower' | 'SudoSetSynergyScalingLawPower' | 'SudoSetValidatorExcludeQuantile' | 'SudoSetValidatorPruneLen' | 'SudoSetValidatorLogitsDivergence';
   }
 
   /** @name PalletSudoError (113) */
