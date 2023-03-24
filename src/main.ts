@@ -227,7 +227,7 @@ async function getBurnAmounts(api: ApiPromise): Promise<{ [key: string]: number}
   const netuids = await getNetuids(api);
   let burn_amounts: { [key: string]: number} = {};
   for (let netuid of netuids) {
-      const diff = (await (api.query.subtensorModule as any).brun(netuid)).toNumber();
+      const diff = (await (api.query.subtensorModule as any).burn(netuid)).toNumber();
       burn_amounts[netuid.toString()] = diff;
   }
   return burn_amounts;
@@ -315,6 +315,15 @@ interface Meta {
     [key: string]: NeuronData[]; // netuid -> NeuronData[]
 }
 
+function getBestAdjustmentInterval(intervals: number[]): number {
+  const gcd = (...arr: any[]) => {
+    const _gcd = (x: number, y: number): number => (!y ? x : gcd(y, x % y));
+    return [...arr].reduce((a, b) => _gcd(a, b));
+  };
+
+  return gcd(...intervals);
+}
+
 async function watchForEpoch(api: ApiPromise, webhook_url: string) {
     let current_block: number = 0;
     let lastMechansimStepBlock: number = 0;
@@ -356,17 +365,21 @@ async function watchForDifficulty(api: ApiPromise, webhook_url: string) {
     
     const current_block: number = (await api.rpc.chain.getHeader()).number.toNumber();
     const netuids = await getNetuids(api);
-    let minAdjustmentInterval: number = Number.MAX_SAFE_INTEGER;
-    let minNetuid: number = -1;
-    for (const netuid in netuids) {
-        const adjustmentInterval_ = ((await (api.query.subtensorModule as any).adjustmentInterval(netuid))).toNumber();
-        if (adjustmentInterval_ < minAdjustmentInterval) {
-            minAdjustmentInterval = adjustmentInterval_;
-            minNetuid = netuid as any as number;
-        }
-    }
-    const adjustmentInterval: number = minAdjustmentInterval;
-    let lastDifficultyAdjustmentBlock: number = ((await (api.query.subtensorModule as any).lastAdjustmentBlock(minNetuid))).toNumber();
+
+  let adjustmentIntervals: number[] = [];
+  let minAdjustmentInterval: number = Number.MAX_SAFE_INTEGER;
+  let minNetuid: number = -1;
+  for (const netuid in netuids) {
+      const adjustmentInterval_ = ((await (api.query.subtensorModule as any).adjustmentInterval(netuid))).toNumber();
+      if (adjustmentInterval_ < minAdjustmentInterval) {
+          minAdjustmentInterval = adjustmentInterval_;
+          minNetuid = netuid as any as number;
+      }
+      adjustmentIntervals.push(adjustmentInterval_);
+  }
+  const adjustmentInterval: number = getBestAdjustmentInterval(adjustmentIntervals);
+
+  let lastDifficultyAdjustmentBlock: number = ((await (api.query.subtensorModule as any).lastAdjustmentBlock(minNetuid))).toNumber();
     console.log("Done getting initial difficulty info.");
 
     const blocks_till_next_difficulty = adjustmentInterval - (current_block - lastDifficultyAdjustmentBlock);
@@ -398,6 +411,8 @@ async function watchForBurnAmount(api: ApiPromise, webhook_url: string) {
   
   const current_block: number = (await api.rpc.chain.getHeader()).number.toNumber();
   const netuids = await getNetuids(api);
+
+  let adjustmentIntervals: number[] = [];
   let minAdjustmentInterval: number = Number.MAX_SAFE_INTEGER;
   let minNetuid: number = -1;
   for (const netuid in netuids) {
@@ -406,8 +421,10 @@ async function watchForBurnAmount(api: ApiPromise, webhook_url: string) {
           minAdjustmentInterval = adjustmentInterval_;
           minNetuid = netuid as any as number;
       }
+      adjustmentIntervals.push(adjustmentInterval_);
   }
-  const adjustmentInterval: number = minAdjustmentInterval;
+  const adjustmentInterval: number = getBestAdjustmentInterval(adjustmentIntervals);
+
   let lastDifficultyAdjustmentBlock: number = ((await (api.query.subtensorModule as any).lastAdjustmentBlock(minNetuid))).toNumber();
   console.log("Done getting initial difficulty info.");
 
