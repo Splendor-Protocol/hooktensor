@@ -378,6 +378,7 @@ async function watchForDifficulty(api: ApiPromise, webhook_url: string) {
       adjustmentIntervals.push(adjustmentInterval_);
   }
   const adjustmentInterval: number = getBestAdjustmentInterval(adjustmentIntervals);
+  console.log(`Best adjustment interval: ${adjustmentInterval}`)
 
   let lastDifficultyAdjustmentBlock: number = ((await (api.query.subtensorModule as any).lastAdjustmentBlock(minNetuid))).toNumber();
     console.log("Done getting initial difficulty info.");
@@ -424,6 +425,7 @@ async function watchForBurnAmount(api: ApiPromise, webhook_url: string) {
       adjustmentIntervals.push(adjustmentInterval_);
   }
   const adjustmentInterval: number = getBestAdjustmentInterval(adjustmentIntervals);
+  console.log(`Best adjustment interval: ${adjustmentInterval}`)
 
   let lastDifficultyAdjustmentBlock: number = ((await (api.query.subtensorModule as any).lastAdjustmentBlock(minNetuid))).toNumber();
   console.log("Done getting initial difficulty info.");
