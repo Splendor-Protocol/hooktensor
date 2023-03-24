@@ -359,7 +359,7 @@ async function watchForEpoch(api: ApiPromise, webhook_url: string) {
     }, blocksPerStep * block_time * 1000); // check every epoch
 }
 
-async function watchForDifficulty(api: ApiPromise, webhook_url: string) {
+async function watchForDifficulty(api: ApiPromise, webhook_url: string): Promise<any> {
     console.log("Getting initial difficulty info...");
     let current_difficulties = await getDifficulty(api);
     
@@ -386,7 +386,7 @@ async function watchForDifficulty(api: ApiPromise, webhook_url: string) {
     const blocks_till_next_difficulty = adjustmentInterval - (current_block - lastDifficultyAdjustmentBlock);
     await sleep(blocks_till_next_difficulty * block_time * 1000); // sleep until next difficulty adjustment
 
-    setInterval(async () => {
+    let intervalID = setInterval(async () => {
         console.log("Checking for difficulty change...");
         let new_difficulties = await getDifficulty(api);
         for (let netuid in new_difficulties) {
@@ -404,6 +404,8 @@ async function watchForDifficulty(api: ApiPromise, webhook_url: string) {
         }
         console.log("Done.");
     }, adjustmentInterval * block_time * 1000); // check every difficulty adjustment
+
+    return intervalID;
 }
 
 async function watchForBurnAmount(api: ApiPromise, webhook_url: string) {
@@ -433,7 +435,7 @@ async function watchForBurnAmount(api: ApiPromise, webhook_url: string) {
   const blocks_till_next_difficulty = adjustmentInterval - (current_block - lastDifficultyAdjustmentBlock);
   await sleep(blocks_till_next_difficulty * block_time * 1000); // sleep until next difficulty adjustment
 
-  setInterval(async () => {
+  let intervalID = setInterval(async () => {
       console.log("Checking for burn amount changes...");
       let new_burn_amounts = await getBurnAmounts(api);
       for (let netuid in new_burn_amounts) {
@@ -451,6 +453,8 @@ async function watchForBurnAmount(api: ApiPromise, webhook_url: string) {
       }
       console.log("Done.");
   }, adjustmentInterval * block_time * 1000); // check every difficulty adjustment
+
+  return intervalID;
 }
 
 export async function watch(url: string, webhook_url: string, interval: number) {
@@ -469,12 +473,23 @@ export async function watch(url: string, webhook_url: string, interval: number) 
     current_meta = await refreshMeta(api);
     console.log("Done...");
 
-    //watchForEpoch(api, webhook_url); // watch for new epochs
-    watchForDifficulty(api, webhook_url); // watch for difficulty changes
-    watchForBurnAmount(api, webhook_url); // watch for burn amount changes
-
+    let new_netuid = true;
+    let watchDiffIntervalID, watchBurnIntervalID;
     // watch for changes in metagraph to detect registration changes
     while (true) {
+        if (new_netuid) {
+          if (watchDiffIntervalID) {
+            clearInterval(watchDiffIntervalID);
+          }
+          if (watchBurnIntervalID) {
+            clearInterval(watchBurnIntervalID);
+          }
+          //watchForEpoch(api, webhook_url); // watch for new epochs
+          watchDiffIntervalID = await watchForDifficulty(api, webhook_url); // watch for difficulty changes
+          watchBurnIntervalID = await watchForBurnAmount(api, webhook_url); // watch for burn amount changes
+          new_netuid = false;
+        }
+  
         console.log(`Sleeping for ${interval/1000} seconds`);
         await sleep(interval);
         console.log("Checking for changes...");
@@ -483,7 +498,17 @@ export async function watch(url: string, webhook_url: string, interval: number) 
         console.log("Done...");
         
         const diff: Diff[] = [];
-        for (let netuid in current_meta) {
+        for (let netuid in new_meta) {
+          if (current_meta[netuid] === undefined) {
+            // new netuid
+            new_netuid = true;
+            let message = `New netuid ${netuid} registered`;
+            post_to_webhook(
+              webhook_url,
+              message
+            );
+            current_meta[netuid] = new_meta[netuid];
+          }
             for (let uid: number = 0; uid < new_meta[netuid].length; uid++) {
                 if (current_meta[netuid][uid].hotkey !== new_meta[netuid][uid].hotkey) {
                     // hotkey changed
