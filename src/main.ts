@@ -239,8 +239,8 @@ async function refreshMeta(api: ApiPromise): Promise<Meta> {
     let _neurons: Meta = {};
     let netuids = await getNetuids(api);
     
-    for (const netuid in netuids) {
-        const result = await getNeurons(api, netuid as any as number)
+    for (let i = 0; i < netuids.length; i++) {
+        const result = await getNeurons(api, netuids[i])
         let neurons_: NeuronData[] = result.map((neuron, j) => {
             return {
                 hotkey: neuron.hotkey.toString(),
@@ -248,7 +248,7 @@ async function refreshMeta(api: ApiPromise): Promise<Meta> {
                 uid: j
             };
         });
-        _neurons[netuid.toString()] = neurons_;
+        _neurons[netuids[i].toString()] = neurons_;
     }
     
     return _neurons;
