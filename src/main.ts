@@ -441,9 +441,9 @@ async function watchForBurnAmount(api: ApiPromise, webhook_url: string) {
       for (let netuid in new_burn_amounts) {
           if (new_burn_amounts[netuid] !== current_burn_amounts[netuid]) {
               console.info("Burn amount changed for netuid " + netuid);
-              console.info(`New burn amount: ${new_burn_amounts[netuid]}`);
+              console.info(`New burn amount: ${new_burn_amounts[netuid]} TAO`);
               console.info("Posting to webhook...");
-              let message = `Burn Amount changed from ${balanceFormatter(current_burn_amounts[netuid])} to ${balanceFormatter(new_burn_amounts[netuid])}`;
+              let message = `Burn Amount changed from ${balanceFormatter(current_burn_amounts[netuid])} \u03C4 to ${balanceFormatter(new_burn_amounts[netuid])} \u03C4`;
               post_to_webhook(
                   webhook_url,
                   message
