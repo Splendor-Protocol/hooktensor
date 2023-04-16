@@ -513,14 +513,14 @@ export async function watch(url: string, webhook_url: string, interval: number) 
             current_meta[netuid] = new_meta[netuid];
           } else {
             for (let uid: number = 0; uid < new_meta[netuid].length; uid++) {
-                if (current_meta[netuid][uid].hotkey !== new_meta[netuid][uid].hotkey) {
+                if (current_meta[netuid][uid]?.hotkey !== new_meta[netuid][uid].hotkey) {
                     // hotkey changed
                     let diff_ = {
                         netuid: netuid,
                         uid: uid,
-                        old_hotkey: current_meta[netuid][uid].hotkey,
+                        old_hotkey: current_meta[netuid][uid]?.hotkey || "None",
                         new_hotkey: new_meta[netuid][uid].hotkey,
-                        old_coldkey: current_meta[netuid][uid].coldkey,
+                        old_coldkey: current_meta[netuid][uid]?.coldkey || "None",
                         new_coldkey: new_meta[netuid][uid].coldkey,
                     };
                     diff.push(diff_);
