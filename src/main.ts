@@ -395,7 +395,7 @@ async function watchForDifficulty(api: ApiPromise, webhook_url: string): Promise
                 console.info("Difficulty changed for netuid " + netuid);
                 console.info(`New difficulty: ${new_difficulties[netuid]}`);
                 console.info("Posting to webhook...");
-                let message = `(Netuid ${netuid}) - Difficulty changed from ${old_diff_formatted || "None"} to ${difficultyFormatter.format(new_difficulties[netuid])}`;
+                let message = `(Netuid ${netuid}) - :pick: Difficulty changed from ${old_diff_formatted || "None"} to ${difficultyFormatter.format(new_difficulties[netuid])}`;
                 post_to_webhook(
                     webhook_url,
                     message
@@ -446,7 +446,7 @@ async function watchForBurnAmount(api: ApiPromise, webhook_url: string) {
               console.info("Burn amount changed for netuid " + netuid);
               console.info(`New burn amount: ${new_burn_amounts[netuid]} TAO`);
               console.info("Posting to webhook...");
-              let message = `(Netuid ${netuid}) - Burn Amount changed from ${old_as_balance || "None"} \u03C4 to ${balanceFormatter(new_burn_amounts[netuid])} \u03C4`;
+              let message = `(Netuid ${netuid}) - :recycle: Recycle Amount changed from ${old_as_balance || "None"} \u03C4 to ${balanceFormatter(new_burn_amounts[netuid])} \u03C4`;
               post_to_webhook(
                   webhook_url,
                   message
