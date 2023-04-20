@@ -365,7 +365,7 @@ async function watchForDifficulty(api: ApiPromise, webhook_url: string): Promise
     console.log("Getting initial difficulty info...");
     let current_difficulties = await getDifficulty(api);
     
-    const current_block: number = ((await api.rpc as any).chain.getHeader()).number.toNumber();
+    const current_block: number = (await (api.rpc as any).chain.getHeader()).number.toNumber();
     const netuids = await getNetuids(api);
 
   let adjustmentIntervals: number[] = [];
@@ -415,7 +415,7 @@ async function watchForBurnAmount(api: ApiPromise, webhook_url: string) {
   console.log("Getting initial burn amount info...");
   let current_burn_amounts = await getBurnAmounts(api);
   
-  const current_block: number = ((await api.rpc as any).chain.getHeader()).number.toNumber();
+  const current_block: number = (await( api.rpc as any).chain.getHeader()).number.toNumber();
   const netuids = await getNetuids(api);
 
   let adjustmentIntervals: number[] = [];
