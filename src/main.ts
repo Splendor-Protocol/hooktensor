@@ -1,5 +1,6 @@
-import './interfaces/augment-api';
-import './interfaces/augment-types';
+//import './interfaces/augment-api';
+//import './interfaces/augment-types';
+import '@polkadot/api-augment';
 import { ApiPromise } from "@polkadot/api/promise/Api";
 import { WsProvider }  from "@polkadot/rpc-provider/ws";
 import { formatBalance } from '@polkadot/util';

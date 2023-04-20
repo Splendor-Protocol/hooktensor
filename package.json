@@ -8,10 +8,8 @@
   "private": true,
   "scripts": {
     "start": "node dist/index.js",
-    "build": "yarn generate:defs && yarn generate:meta && yarn tsc",
-    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
-    "generate:defs": "ts-node --skip-project node_modules/.bin/polkadot-types-from-defs --package hooktensor/interfaces --input ./src/interfaces --endpoint wss://entrypoint-finney.opentensor.ai:443",
-    "generate:meta": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint wss://entrypoint-finney.opentensor.ai:443 --output ./src/interfaces --strict"
+    "build": "yarn tsc",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts"
   },
   "dependencies": {
     "@polkadot/api": "^9.5.2",
