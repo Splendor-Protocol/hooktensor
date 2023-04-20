@@ -25,7 +25,7 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       ExistingVestingSchedule: AugmentedError<ApiType>;
       /**
-       * Balance too low to send value
+       * Balance too low to send value.
        **/
       InsufficientBalance: AugmentedError<ApiType>;
       /**
@@ -78,117 +78,47 @@ declare module '@polkadot/api-base/types/errors' {
       TooSoon: AugmentedError<ApiType>;
     };
     subtensorModule: {
-      /**
-       * ---- Thrown when the caller requests registering a neuron which
-       * already exists in the active set.
-       **/
+      AlreadyDelegate: AugmentedError<ApiType>;
       AlreadyRegistered: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown when the caller tries to add stake, but for some reason the requested
-       * amount could not be withdrawn from the coldkey account
-       **/
+      BalanceSetError: AugmentedError<ApiType>;
       BalanceWithdrawalError: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown when the dispatch attempts to convert between a u64 and T::balance
-       * but the call fails.
-       **/
       CouldNotConvertToBalance: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown when the caller attempts to set weights with duplicate uids
-       * in the weight matrix.
-       **/
+      DidNotPassConnectedNetworkRequirement: AugmentedError<ApiType>;
       DuplicateUids: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown if the supplied pow hash block does not meet the network difficulty.
-       **/
+      EmissionValuesDoesNotMatchNetworks: AugmentedError<ApiType>;
+      IncorrectNetworkVersionKey: AugmentedError<ApiType>;
+      InvalidConnectionRequirement: AugmentedError<ApiType>;
       InvalidDifficulty: AugmentedError<ApiType>;
-      /**
-       * --- Thrown when an invalid IP address is passed to the serve function.
-       **/
+      InvalidEmissionValues: AugmentedError<ApiType>;
       InvalidIpAddress: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown when the user tries to serve an axon which is not of type
-       * 4 (IPv4) or 6 (IPv6).
-       **/
       InvalidIpType: AugmentedError<ApiType>;
-      /**
-       * --- Thrown when an invalid modality attempted on serve.
-       * Currently the chain only accepts modality TEXT = 0.
-       **/
       InvalidModality: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown if the supplied pow hash seal does not match the supplied work.
-       **/
       InvalidSeal: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown when a caller attempts to set weight to at least one uid that
-       * does not exist in the metagraph.
-       **/
+      InvalidTempo: AugmentedError<ApiType>;
       InvalidUid: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown if the supplied pow hash block is in the future or negative
-       **/
       InvalidWorkBlock: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown when the dispatch attempts to set weights on chain with where the normalized
-       * max value is more than MaxAllowedMaxMinRatio.
-       **/
-      MaxAllowedMaxMinRatioExceeded: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown when the dispatch attempts to set weights on chain with where any normalized
-       * weight is more than MaxWeightLimit.
-       **/
+      MaxAllowedUidsExceeded: AugmentedError<ApiType>;
+      MaxAllowedUIdsNotAllowed: AugmentedError<ApiType>;
       MaxWeightExceeded: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown when a stake, unstake or subscribe request is made by a coldkey
-       * which is not associated with the hotkey account.
-       * See: fn add_stake and fn remove_stake.
-       **/
+      NetworkDoesNotExist: AugmentedError<ApiType>;
+      NetworkExist: AugmentedError<ApiType>;
       NonAssociatedColdKey: AugmentedError<ApiType>;
-      /**
-       * Error names should be descriptive.
-       **/
-      NoneValue: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown when the caller requests adding more stake than there exists
-       * in the cold key account. See: fn add_stake
-       **/
       NotEnoughBalanceToStake: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown when the caller requests removing more stake then there exists
-       * in the staking account. See: fn remove_stake.
-       **/
       NotEnoughStaketoWithdraw: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown when the caller requests setting or removing data from
-       * a neuron which does not exist in the active set.
-       **/
       NotRegistered: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown when the dispatch attempts to set weights on chain with fewer elements
-       * than are allowed.
-       **/
       NotSettingEnoughWeights: AugmentedError<ApiType>;
-      /**
-       * Errors should have helpful documentation associated with them.
-       **/
-      StorageOverflow: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown when the caller attempts to set a storage value outside of its allowed range.
-       **/
+      NoValidatorPermit: AugmentedError<ApiType>;
+      RegistrationDisabled: AugmentedError<ApiType>;
+      ServingRateLimitExceeded: AugmentedError<ApiType>;
+      SettingWeightsTooFast: AugmentedError<ApiType>;
+      StakeAlreadyAdded: AugmentedError<ApiType>;
       StorageValueOutOfRange: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown when registrations this block exceeds allowed number.
-       **/
-      ToManyRegistrationsThisBlock: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown when the caller attempts to set the weight keys
-       * and values but these vectors have different size.
-       **/
+      TempoHasNotSet: AugmentedError<ApiType>;
+      TooManyRegistrationsThisBlock: AugmentedError<ApiType>;
+      TooManyRegistrationsThisInterval: AugmentedError<ApiType>;
+      TooManyUids: AugmentedError<ApiType>;
+      TxRateLimitExceeded: AugmentedError<ApiType>;
       WeightVecNotEqualSize: AugmentedError<ApiType>;
-      /**
-       * ---- Thrown when the caller attempts to use a repeated work.
-       **/
       WorkRepeated: AugmentedError<ApiType>;
     };
     sudo: {

@@ -328,9 +328,10 @@ async function watchForEpoch(api: ApiPromise, webhook_url: string) {
     let current_block: number = 0;
     let lastMechansimStepBlock: number = 0;
     console.log("Getting initial epoch info...");
-    const blocksPerStep: number = ((await api.query.subtensorModule.blocksPerStep())).toNumber();
-    current_block = (await api.rpc.chain.getHeader()).number.toNumber();
-    lastMechansimStepBlock = (await api.query.subtensorModule.lastMechansimStepBlock()).toNumber();
+    let netuid = 3;
+    const blocksPerStep: number = ((await api.query.subtensorModule.tempo(netuid)) as any).toNumber();
+    current_block = (await (api.rpc as any).chain.getHeader()).number.toNumber();
+    lastMechansimStepBlock = (await api.query.subtensorModule.lastMechansimStepBlock(netuid) as any).toNumber();
     console.log("Done getting initial epoch info");
 
     const blocks_till_next_epoch = blocksPerStep - (current_block - lastMechansimStepBlock);
@@ -338,12 +339,12 @@ async function watchForEpoch(api: ApiPromise, webhook_url: string) {
 
     setInterval(async () => {
         console.log("Getting current block...");
-        current_block = (await api.rpc.chain.getHeader()).number.toNumber();
+        current_block = (await (api.rpc as any).chain.getHeader()).number.toNumber();
         console.log(`Current block: ${current_block}`);
         if (current_block - lastMechansimStepBlock >= blocksPerStep) {
             console.log("New epoch!");
             // update lastMechansimStepBlock
-            lastMechansimStepBlock = (await api.query.subtensorModule.lastMechansimStepBlock()).toNumber();
+            lastMechansimStepBlock = (await api.query.subtensorModule.lastMechansimStepBlock(netuid) as any).toNumber();
             console.log("Posting to webhook...");
             const blocks_per_day  = (24 * 60 * 60) / block_time; // seconds per day / block time
             const days_until = (halving_block - current_block) / blocks_per_day;
@@ -363,7 +364,7 @@ async function watchForDifficulty(api: ApiPromise, webhook_url: string): Promise
     console.log("Getting initial difficulty info...");
     let current_difficulties = await getDifficulty(api);
     
-    const current_block: number = (await api.rpc.chain.getHeader()).number.toNumber();
+    const current_block: number = ((await api.rpc as any).chain.getHeader()).number.toNumber();
     const netuids = await getNetuids(api);
 
   let adjustmentIntervals: number[] = [];
@@ -413,7 +414,7 @@ async function watchForBurnAmount(api: ApiPromise, webhook_url: string) {
   console.log("Getting initial burn amount info...");
   let current_burn_amounts = await getBurnAmounts(api);
   
-  const current_block: number = (await api.rpc.chain.getHeader()).number.toNumber();
+  const current_block: number = ((await api.rpc as any).chain.getHeader()).number.toNumber();
   const netuids = await getNetuids(api);
 
   let adjustmentIntervals: number[] = [];

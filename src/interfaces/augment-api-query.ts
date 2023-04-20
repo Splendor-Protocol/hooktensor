@@ -6,10 +6,10 @@
 import '@polkadot/api-base/types/storage';
 
 import type { ApiTypes, AugmentedQuery, QueryableStorageEntry } from '@polkadot/api-base/types';
-import type { Bytes, Option, Vec, bool, u128, u32, u64, u8 } from '@polkadot/types-codec';
+import type { Bytes, Option, Vec, bool, u128, u16, u32, u64 } from '@polkadot/types-codec';
 import type { AnyNumber, ITuple } from '@polkadot/types-codec/types';
 import type { AccountId32, H256 } from '@polkadot/types/interfaces/runtime';
-import type { FrameSupportWeightsPerDispatchClassU64, FrameSystemAccountInfo, FrameSystemEventRecord, FrameSystemLastRuntimeUpgradeInfo, FrameSystemPhase, PalletBalancesAccountData, PalletBalancesBalanceLock, PalletBalancesReleases, PalletBalancesReserveData, PalletGrandpaStoredPendingChange, PalletGrandpaStoredState, PalletSubtensorNeuronMetadata, PalletTransactionPaymentReleases, SpConsensusAuraSr25519AppSr25519Public, SpRuntimeDigest } from '@polkadot/types/lookup';
+import type { FrameSupportDispatchPerDispatchClassWeight, FrameSystemAccountInfo, FrameSystemEventRecord, FrameSystemLastRuntimeUpgradeInfo, FrameSystemPhase, PalletBalancesAccountData, PalletBalancesBalanceLock, PalletBalancesReserveData, PalletGrandpaStoredPendingChange, PalletGrandpaStoredState, PalletSubtensorAxonInfo, PalletSubtensorPrometheusInfo, PalletTransactionPaymentReleases, SpConsensusAuraSr25519AppSr25519Public, SpRuntimeDigest } from '@polkadot/types/lookup';
 import type { Observable } from '@polkadot/types/types';
 
 export type __AugmentedQuery<ApiType extends ApiTypes> = AugmentedQuery<ApiType, () => unknown>;
@@ -58,6 +58,10 @@ declare module '@polkadot/api-base/types/storage' {
        **/
       account: AugmentedQuery<ApiType, (arg: AccountId32 | string | Uint8Array) => Observable<PalletBalancesAccountData>, [AccountId32]>;
       /**
+       * The total units of outstanding deactivated balance in the system.
+       **/
+      inactiveIssuance: AugmentedQuery<ApiType, () => Observable<u64>, []>;
+      /**
        * Any liquidity locks on some account balances.
        * NOTE: Should only be accessed when setting, changing and freeing a lock.
        **/
@@ -67,15 +71,9 @@ declare module '@polkadot/api-base/types/storage' {
        **/
       reserves: AugmentedQuery<ApiType, (arg: AccountId32 | string | Uint8Array) => Observable<Vec<PalletBalancesReserveData>>, [AccountId32]>;
       /**
-       * Storage version of the pallet.
-       * 
-       * This is set to v2.0.0 for new networks.
-       **/
-      storageVersion: AugmentedQuery<ApiType, () => Observable<PalletBalancesReleases>, []>;
-      /**
        * The total units issued in the system.
        **/
-      totalIssuance: AugmentedQuery<ApiType, () => Observable<u128>, []>;
+      totalIssuance: AugmentedQuery<ApiType, () => Observable<u64>, []>;
     };
     grandpa: {
       /**
@@ -94,6 +92,12 @@ declare module '@polkadot/api-base/types/storage' {
       /**
        * A mapping from grandpa set ID to the index of the *most recent* session for which its
        * members were responsible.
+       * 
+       * This is only used for validating equivocation proofs. An equivocation proof must
+       * contains a key-ownership proof for a given session, therefore we need a way to tie
+       * together sessions and GRANDPA set ids, i.e. we need to validate that a validator
+       * was the owner of a given key on a given session, and what the active set ID was
+       * during that session.
        * 
        * TWOX-NOTE: `SetId` is not under user control.
        **/
@@ -116,67 +120,84 @@ declare module '@polkadot/api-base/types/storage' {
       randomMaterial: AugmentedQuery<ApiType, () => Observable<Vec<H256>>, []>;
     };
     subtensorModule: {
-      activityCutoff: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      adjustmentInterval: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      blockAtRegistration: AugmentedQuery<ApiType, (arg: u32 | AnyNumber | Uint8Array) => Observable<u64>, [u32]>;
-      blocksPerStep: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      blocksSinceLastStep: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      bondsMovingAverage: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      difficulty: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      /**
-       * #[pallet::type_value]
-       * pub fn DefaultFoundationAccount<T: Config>() -> u64 { T::InitialFoundationAccount::get() }
-       **/
-      foundationAccount: AugmentedQuery<ApiType, () => Observable<Option<AccountId32>>, []>;
-      foundationDistribution: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      /**
-       * ---- Maps from hotkey to uid.
-       **/
-      hotkeys: AugmentedQuery<ApiType, (arg: AccountId32 | string | Uint8Array) => Observable<u32>, [AccountId32]>;
-      immunityPeriod: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      incentivePruningDenominator: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      kappa: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      lastDifficultyAdjustmentBlock: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      lastMechansimStepBlock: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      maxAllowedMaxMinRatio: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      maxAllowedUids: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      maxRegistrationsPerBlock: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      maxWeightLimit: AugmentedQuery<ApiType, () => Observable<u32>, []>;
-      minAllowedWeights: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      /**
-       * ************************************************************
-       * *---- Storage Objects
-       * ************************************************************
-       **/
-      n: AugmentedQuery<ApiType, () => Observable<u32>, []>;
-      /**
-       * ---- Maps from uid to neuron.
-       **/
-      neurons: AugmentedQuery<ApiType, (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<PalletSubtensorNeuronMetadata>>, [u32]>;
-      /**
-       * ---- Maps from uid to uid as a set which we use to record uids to prune at next epoch.
-       **/
-      neuronsToPruneAtNextEpoch: AugmentedQuery<ApiType, (arg: u32 | AnyNumber | Uint8Array) => Observable<u32>, [u32]>;
-      registrationsThisBlock: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      registrationsThisInterval: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      rho: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      scalingLawPower: AugmentedQuery<ApiType, () => Observable<u8>, []>;
-      stakePruningDenominator: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      stakePruningMin: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      synergyScalingLawPower: AugmentedQuery<ApiType, () => Observable<u8>, []>;
-      targetRegistrationsPerInterval: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      totalBondsPurchased: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      totalEmission: AugmentedQuery<ApiType, () => Observable<u64>, []>;
+      active: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<Vec<bool>>, [u16]>;
+      activityCutoff: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      adjustmentInterval: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      axons: AugmentedQuery<ApiType, (arg1: u16 | AnyNumber | Uint8Array, arg2: AccountId32 | string | Uint8Array) => Observable<Option<PalletSubtensorAxonInfo>>, [u16, AccountId32]>;
+      blockAtRegistration: AugmentedQuery<ApiType, (arg1: u16 | AnyNumber | Uint8Array, arg2: u16 | AnyNumber | Uint8Array) => Observable<u64>, [u16, u16]>;
+      blockEmission: AugmentedQuery<ApiType, () => Observable<u64>, []>;
+      blocksSinceLastStep: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u64>, [u16]>;
+      bonds: AugmentedQuery<ApiType, (arg1: u16 | AnyNumber | Uint8Array, arg2: u16 | AnyNumber | Uint8Array) => Observable<Vec<ITuple<[u16, u16]>>>, [u16, u16]>;
+      bondsMovingAverage: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u64>, [u16]>;
+      burn: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u64>, [u16]>;
+      burnRegistrationsThisInterval: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      consensus: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<Vec<u16>>, [u16]>;
+      defaultTake: AugmentedQuery<ApiType, () => Observable<u16>, []>;
+      delegates: AugmentedQuery<ApiType, (arg: AccountId32 | string | Uint8Array) => Observable<u16>, [AccountId32]>;
+      difficulty: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u64>, [u16]>;
+      dividends: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<Vec<u16>>, [u16]>;
+      emission: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<Vec<u64>>, [u16]>;
+      emissionValues: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u64>, [u16]>;
+      immunityPeriod: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      incentive: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<Vec<u16>>, [u16]>;
+      isNetworkMember: AugmentedQuery<ApiType, (arg1: AccountId32 | string | Uint8Array, arg2: u16 | AnyNumber | Uint8Array) => Observable<bool>, [AccountId32, u16]>;
+      kappa: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      keys: AugmentedQuery<ApiType, (arg1: u16 | AnyNumber | Uint8Array, arg2: u16 | AnyNumber | Uint8Array) => Observable<AccountId32>, [u16, u16]>;
+      lastAdjustmentBlock: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u64>, [u16]>;
+      lastMechansimStepBlock: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u64>, [u16]>;
+      lastTxBlock: AugmentedQuery<ApiType, (arg: AccountId32 | string | Uint8Array) => Observable<u64>, [AccountId32]>;
+      lastUpdate: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<Vec<u64>>, [u16]>;
+      loadedEmission: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<Option<Vec<ITuple<[AccountId32, u64]>>>>, [u16]>;
+      maxAllowedUids: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      maxAllowedValidators: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      maxBurn: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u64>, [u16]>;
+      maxDifficulty: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u64>, [u16]>;
+      maxRegistrationsPerBlock: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      maxWeightsLimit: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      minAllowedWeights: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      minBurn: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u64>, [u16]>;
+      minDifficulty: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u64>, [u16]>;
+      networkConnect: AugmentedQuery<ApiType, (arg1: u16 | AnyNumber | Uint8Array, arg2: u16 | AnyNumber | Uint8Array) => Observable<Option<u16>>, [u16, u16]>;
+      networkModality: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      networksAdded: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<bool>, [u16]>;
+      neuronsToPruneAtNextEpoch: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      owner: AugmentedQuery<ApiType, (arg: AccountId32 | string | Uint8Array) => Observable<AccountId32>, [AccountId32]>;
+      pendingEmission: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u64>, [u16]>;
+      powRegistrationsThisInterval: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      prometheus: AugmentedQuery<ApiType, (arg1: u16 | AnyNumber | Uint8Array, arg2: AccountId32 | string | Uint8Array) => Observable<Option<PalletSubtensorPrometheusInfo>>, [u16, AccountId32]>;
+      pruningScores: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<Vec<u16>>, [u16]>;
+      rank: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<Vec<u16>>, [u16]>;
+      registrationsThisBlock: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      registrationsThisInterval: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      rho: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      scalingLawPower: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      servingRateLimit: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u64>, [u16]>;
+      stake: AugmentedQuery<ApiType, (arg1: AccountId32 | string | Uint8Array, arg2: AccountId32 | string | Uint8Array) => Observable<u64>, [AccountId32, AccountId32]>;
+      subnetworkN: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      synergyScalingLawPower: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      targetRegistrationsPerInterval: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      tempo: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      totalColdkeyStake: AugmentedQuery<ApiType, (arg: AccountId32 | string | Uint8Array) => Observable<u64>, [AccountId32]>;
+      totalHotkeyStake: AugmentedQuery<ApiType, (arg: AccountId32 | string | Uint8Array) => Observable<u64>, [AccountId32]>;
       totalIssuance: AugmentedQuery<ApiType, () => Observable<u64>, []>;
+      totalNetworks: AugmentedQuery<ApiType, () => Observable<u16>, []>;
       totalStake: AugmentedQuery<ApiType, () => Observable<u64>, []>;
+      trust: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<Vec<u16>>, [u16]>;
+      txRateLimit: AugmentedQuery<ApiType, () => Observable<u64>, []>;
+      uids: AugmentedQuery<ApiType, (arg1: u16 | AnyNumber | Uint8Array, arg2: AccountId32 | string | Uint8Array) => Observable<Option<u16>>, [u16, AccountId32]>;
       usedWork: AugmentedQuery<ApiType, (arg: Bytes | string | Uint8Array) => Observable<u64>, [Bytes]>;
-      validatorBatchSize: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      validatorEpochLen: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      validatorEpochsPerReset: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      validatorExcludeQuantile: AugmentedQuery<ApiType, () => Observable<u8>, []>;
-      validatorLogitsDivergence: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      validatorPruneLen: AugmentedQuery<ApiType, () => Observable<u64>, []>;
-      validatorSequenceLength: AugmentedQuery<ApiType, () => Observable<u64>, []>;
+      validatorBatchSize: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      validatorEpochLen: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      validatorEpochsPerReset: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      validatorExcludeQuantile: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      validatorLogitsDivergence: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      validatorPermit: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<Vec<bool>>, [u16]>;
+      validatorPruneLen: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u64>, [u16]>;
+      validatorSequenceLength: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u16>, [u16]>;
+      validatorTrust: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<Vec<u16>>, [u16]>;
+      weights: AugmentedQuery<ApiType, (arg1: u16 | AnyNumber | Uint8Array, arg2: u16 | AnyNumber | Uint8Array) => Observable<Vec<ITuple<[u16, u16]>>>, [u16, u16]>;
+      weightsSetRateLimit: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u64>, [u16]>;
+      weightsVersionKey: AugmentedQuery<ApiType, (arg: u16 | AnyNumber | Uint8Array) => Observable<u64>, [u16]>;
     };
     sudo: {
       /**
@@ -200,7 +221,7 @@ declare module '@polkadot/api-base/types/storage' {
       /**
        * The current weight for the block.
        **/
-      blockWeight: AugmentedQuery<ApiType, () => Observable<FrameSupportWeightsPerDispatchClassU64>, []>;
+      blockWeight: AugmentedQuery<ApiType, () => Observable<FrameSupportDispatchPerDispatchClassWeight>, []>;
       /**
        * Digest of the current block, also part of the block header.
        **/
@@ -212,8 +233,11 @@ declare module '@polkadot/api-base/types/storage' {
       /**
        * Events deposited for the current block.
        * 
-       * NOTE: This storage item is explicitly unbounded since it is never intended to be read
-       * from within the runtime.
+       * NOTE: The item is unbound and should therefore never be read on chain.
+       * It could otherwise inflate the PoV size of a block.
+       * 
+       * Events have a large in-memory size. Box the events to not go out-of-memory
+       * just in case someone still reads them from within the runtime.
        **/
       events: AugmentedQuery<ApiType, () => Observable<Vec<FrameSystemEventRecord>>, []>;
       /**

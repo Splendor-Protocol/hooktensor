@@ -6,19 +6,19 @@
 import '@polkadot/api-base/types/calls';
 
 import type { ApiTypes, AugmentedCall, DecoratedCallBase } from '@polkadot/api-base/types';
-import type { Bytes, Null, Option, Vec, u32 } from '@polkadot/types-codec';
+import type { Bytes, Null, Option, Result, Text, Vec, bool } from '@polkadot/types-codec';
 import type { AnyNumber, ITuple } from '@polkadot/types-codec/types';
 import type { OpaqueKeyOwnershipProof } from '@polkadot/types/interfaces/babe';
+import type { BenchmarkBatch, BenchmarkConfig, BenchmarkList } from '@polkadot/types/interfaces/benchmark';
 import type { CheckInherentsResult, InherentData } from '@polkadot/types/interfaces/blockbuilder';
 import type { BlockHash } from '@polkadot/types/interfaces/chain';
 import type { AuthorityId } from '@polkadot/types/interfaces/consensus';
 import type { Extrinsic } from '@polkadot/types/interfaces/extrinsics';
 import type { AuthorityList, GrandpaEquivocationProof, SetId } from '@polkadot/types/interfaces/grandpa';
 import type { OpaqueMetadata } from '@polkadot/types/interfaces/metadata';
-import type { FeeDetails, RuntimeDispatchInfo } from '@polkadot/types/interfaces/payment';
-import type { AccountId, Block, Header, Index, KeyTypeId, SlotDuration } from '@polkadot/types/interfaces/runtime';
+import type { AccountId, Block, Header, Index, KeyTypeId, SlotDuration, StorageInfo } from '@polkadot/types/interfaces/runtime';
 import type { RuntimeVersion } from '@polkadot/types/interfaces/state';
-import type { ApplyExtrinsicResultPre6 } from '@polkadot/types/interfaces/system';
+import type { ApplyExtrinsicResult } from '@polkadot/types/interfaces/system';
 import type { TransactionSource, TransactionValidity } from '@polkadot/types/interfaces/txqueue';
 import type { IExtrinsic, Observable } from '@polkadot/types/types';
 
@@ -45,12 +45,23 @@ declare module '@polkadot/api-base/types/calls' {
        **/
       slotDuration: AugmentedCall<ApiType, () => Observable<SlotDuration>>;
     };
-    /** 0x40fe3ad401f8959a/5 */
+    /** 0x67f4b8fba858782a/1 */
+    benchmark: {
+      /**
+       * Get the benchmark metadata available for this runtime.
+       **/
+      benchmarkMetadata: AugmentedCall<ApiType, (extra: bool | boolean | Uint8Array) => Observable<ITuple<[Vec<BenchmarkList>, Vec<StorageInfo>]>>>;
+      /**
+       * Dispatch the given benchmark.
+       **/
+      dispatchBenchmark: AugmentedCall<ApiType, (config: BenchmarkConfig | { pallet?: any; benchmark?: any; selectedComponents?: any; verify?: any; internalRepeats?: any } | string | Uint8Array) => Observable<Result<Vec<BenchmarkBatch>, Text>>>;
+    };
+    /** 0x40fe3ad401f8959a/6 */
     blockBuilder: {
       /**
        * Apply the given extrinsic.
        **/
-      applyExtrinsic: AugmentedCall<ApiType, (extrinsic: Extrinsic | IExtrinsic | string | Uint8Array) => Observable<ApplyExtrinsicResultPre6>>;
+      applyExtrinsic: AugmentedCall<ApiType, (extrinsic: Extrinsic | IExtrinsic | string | Uint8Array) => Observable<ApplyExtrinsicResult>>;
       /**
        * Check that the inherents are valid.
        **/
@@ -129,17 +140,6 @@ declare module '@polkadot/api-base/types/calls' {
        * Validate the transaction.
        **/
       validateTransaction: AugmentedCall<ApiType, (source: TransactionSource | 'InBlock' | 'Local' | 'External' | number | Uint8Array, tx: Extrinsic | IExtrinsic | string | Uint8Array, blockHash: BlockHash | string | Uint8Array) => Observable<TransactionValidity>>;
-    };
-    /** 0x37c8bb1350a9a2a8/1 */
-    transactionPaymentApi: {
-      /**
-       * The transaction fee details
-       **/
-      queryFeeDetails: AugmentedCall<ApiType, (uxt: Extrinsic | IExtrinsic | string | Uint8Array, len: u32 | AnyNumber | Uint8Array) => Observable<FeeDetails>>;
-      /**
-       * The transaction info
-       **/
-      queryInfo: AugmentedCall<ApiType, (uxt: Extrinsic | IExtrinsic | string | Uint8Array, len: u32 | AnyNumber | Uint8Array) => Observable<RuntimeDispatchInfo>>;
     };
   } // AugmentedCalls
 } // declare module

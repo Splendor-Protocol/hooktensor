@@ -6,10 +6,10 @@
 import '@polkadot/api-base/types/events';
 
 import type { ApiTypes, AugmentedEvent } from '@polkadot/api-base/types';
-import type { Null, Option, Result, Vec, u128, u32, u64, u8 } from '@polkadot/types-codec';
+import type { Null, Option, Result, Vec, u16, u64 } from '@polkadot/types-codec';
 import type { ITuple } from '@polkadot/types-codec/types';
 import type { AccountId32, H256 } from '@polkadot/types/interfaces/runtime';
-import type { FrameSupportTokensMiscBalanceStatus, FrameSupportWeightsDispatchInfo, SpFinalityGrandpaAppPublic, SpRuntimeDispatchError } from '@polkadot/types/lookup';
+import type { FrameSupportDispatchDispatchInfo, FrameSupportTokensMiscBalanceStatus, SpFinalityGrandpaAppPublic, SpRuntimeDispatchError } from '@polkadot/types/lookup';
 
 export type __AugmentedEvent<ApiType extends ApiTypes> = AugmentedEvent<ApiType>;
 
@@ -19,45 +19,45 @@ declare module '@polkadot/api-base/types/events' {
       /**
        * A balance was set by root.
        **/
-      BalanceSet: AugmentedEvent<ApiType, [who: AccountId32, free: u128, reserved: u128], { who: AccountId32, free: u128, reserved: u128 }>;
+      BalanceSet: AugmentedEvent<ApiType, [who: AccountId32, free: u64, reserved: u64], { who: AccountId32, free: u64, reserved: u64 }>;
       /**
        * Some amount was deposited (e.g. for transaction fees).
        **/
-      Deposit: AugmentedEvent<ApiType, [who: AccountId32, amount: u128], { who: AccountId32, amount: u128 }>;
+      Deposit: AugmentedEvent<ApiType, [who: AccountId32, amount: u64], { who: AccountId32, amount: u64 }>;
       /**
        * An account was removed whose balance was non-zero but below ExistentialDeposit,
        * resulting in an outright loss.
        **/
-      DustLost: AugmentedEvent<ApiType, [account: AccountId32, amount: u128], { account: AccountId32, amount: u128 }>;
+      DustLost: AugmentedEvent<ApiType, [account: AccountId32, amount: u64], { account: AccountId32, amount: u64 }>;
       /**
        * An account was created with some free balance.
        **/
-      Endowed: AugmentedEvent<ApiType, [account: AccountId32, freeBalance: u128], { account: AccountId32, freeBalance: u128 }>;
+      Endowed: AugmentedEvent<ApiType, [account: AccountId32, freeBalance: u64], { account: AccountId32, freeBalance: u64 }>;
       /**
        * Some balance was reserved (moved from free to reserved).
        **/
-      Reserved: AugmentedEvent<ApiType, [who: AccountId32, amount: u128], { who: AccountId32, amount: u128 }>;
+      Reserved: AugmentedEvent<ApiType, [who: AccountId32, amount: u64], { who: AccountId32, amount: u64 }>;
       /**
        * Some balance was moved from the reserve of the first account to the second account.
        * Final argument indicates the destination balance type.
        **/
-      ReserveRepatriated: AugmentedEvent<ApiType, [from: AccountId32, to: AccountId32, amount: u128, destinationStatus: FrameSupportTokensMiscBalanceStatus], { from: AccountId32, to: AccountId32, amount: u128, destinationStatus: FrameSupportTokensMiscBalanceStatus }>;
+      ReserveRepatriated: AugmentedEvent<ApiType, [from: AccountId32, to: AccountId32, amount: u64, destinationStatus: FrameSupportTokensMiscBalanceStatus], { from: AccountId32, to: AccountId32, amount: u64, destinationStatus: FrameSupportTokensMiscBalanceStatus }>;
       /**
        * Some amount was removed from the account (e.g. for misbehavior).
        **/
-      Slashed: AugmentedEvent<ApiType, [who: AccountId32, amount: u128], { who: AccountId32, amount: u128 }>;
+      Slashed: AugmentedEvent<ApiType, [who: AccountId32, amount: u64], { who: AccountId32, amount: u64 }>;
       /**
        * Transfer succeeded.
        **/
-      Transfer: AugmentedEvent<ApiType, [from: AccountId32, to: AccountId32, amount: u128], { from: AccountId32, to: AccountId32, amount: u128 }>;
+      Transfer: AugmentedEvent<ApiType, [from: AccountId32, to: AccountId32, amount: u64], { from: AccountId32, to: AccountId32, amount: u64 }>;
       /**
        * Some balance was unreserved (moved from reserved to free).
        **/
-      Unreserved: AugmentedEvent<ApiType, [who: AccountId32, amount: u128], { who: AccountId32, amount: u128 }>;
+      Unreserved: AugmentedEvent<ApiType, [who: AccountId32, amount: u64], { who: AccountId32, amount: u64 }>;
       /**
        * Some amount was withdrawn from the account (e.g. for transaction fees).
        **/
-      Withdraw: AugmentedEvent<ApiType, [who: AccountId32, amount: u128], { who: AccountId32, amount: u128 }>;
+      Withdraw: AugmentedEvent<ApiType, [who: AccountId32, amount: u64], { who: AccountId32, amount: u64 }>;
     };
     grandpa: {
       /**
@@ -74,147 +74,52 @@ declare module '@polkadot/api-base/types/events' {
       Resumed: AugmentedEvent<ApiType, []>;
     };
     subtensorModule: {
-      /**
-       * --- Event created when the activity cuttoff has been set.
-       **/
-      ActivityCuttoffSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when the difficulty adjustment interval has been set.
-       **/
-      AdjustmentIntervalSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when the axon server information is added to the network.
-       **/
-      AxonServed: AugmentedEvent<ApiType, [u32]>;
-      /**
-       * --- Event created when default blocks per step has been set.
-       **/
-      BlocksPerStepSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when bonds moving average set.
-       **/
-      BondsMovingAverageSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when the difficulty has been set.
-       **/
-      DifficultySet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when the foundation account has been set.
-       **/
-      FoundationAccountSet: AugmentedEvent<ApiType, [AccountId32]>;
-      /**
-       * --- Event created when the foundation distribution has been set.
-       **/
-      FoundationDistributionSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when the immunity period has been set.
-       **/
-      ImmunityPeriodSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when the incentive pruning denominator has been set.
-       **/
-      IncentivePruningDenominatorSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when mechanism kappa has been set.
-       **/
-      KappaSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when the max allowed max min ration has been set.
-       **/
-      MaxAllowedMaxMinRatioSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when max allowed uids has been set.
-       **/
-      MaxAllowedUidsSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when the max weight limit has been set.
-       **/
-      MaxWeightLimitSet: AugmentedEvent<ApiType, [u32]>;
-      /**
-       * --- Event created when min allowed weights has been set.
-       **/
-      MinAllowedWeightsSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when a new neuron account has been registered to
-       * the chain.
-       **/
-      NeuronRegistered: AugmentedEvent<ApiType, [u32]>;
-      /**
-       * --- Event thrown when bonds have been reset.
-       **/
-      ResetBonds: AugmentedEvent<ApiType, []>;
-      /**
-       * --- Event created when mechanism rho has been set.
-       **/
-      RhoSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when the scaling law power has been set.
-       **/
-      ScalingLawPowerSet: AugmentedEvent<ApiType, [u8]>;
-      /**
-       * Event documentation should end with an array that provides descriptive names for event
-       * parameters. [something, who]
-       **/
-      SomethingStored: AugmentedEvent<ApiType, [u32, AccountId32]>;
-      /**
-       * --- Event created during when stake has been transfered from
-       * the coldkey onto the hotkey staking account.
-       **/
+      ActivityCutoffSet: AugmentedEvent<ApiType, [u16, u16]>;
+      AdjustmentIntervalSet: AugmentedEvent<ApiType, [u16, u16]>;
+      AxonServed: AugmentedEvent<ApiType, [u16, AccountId32]>;
+      BondsMovingAverageSet: AugmentedEvent<ApiType, [u16, u64]>;
+      BulkBalancesSet: AugmentedEvent<ApiType, [u16, u16]>;
+      BulkNeuronsRegistered: AugmentedEvent<ApiType, [u16, u16]>;
+      BurnSet: AugmentedEvent<ApiType, [u16, u64]>;
+      DefaultTakeSet: AugmentedEvent<ApiType, [u16]>;
+      DelegateAdded: AugmentedEvent<ApiType, [AccountId32, AccountId32, u16]>;
+      DifficultySet: AugmentedEvent<ApiType, [u16, u64]>;
+      EmissionValuesSet: AugmentedEvent<ApiType, []>;
+      ImmunityPeriodSet: AugmentedEvent<ApiType, [u16, u16]>;
+      KappaSet: AugmentedEvent<ApiType, [u16, u16]>;
+      MaxAllowedUidsSet: AugmentedEvent<ApiType, [u16, u16]>;
+      MaxAllowedValidatorsSet: AugmentedEvent<ApiType, [u16, u16]>;
+      MaxBurnSet: AugmentedEvent<ApiType, [u16, u64]>;
+      MaxDifficultySet: AugmentedEvent<ApiType, [u16, u64]>;
+      MaxRegistrationsPerBlockSet: AugmentedEvent<ApiType, [u16, u16]>;
+      MaxWeightLimitSet: AugmentedEvent<ApiType, [u16, u16]>;
+      MinAllowedWeightSet: AugmentedEvent<ApiType, [u16, u16]>;
+      MinBurnSet: AugmentedEvent<ApiType, [u16, u64]>;
+      MinDifficultySet: AugmentedEvent<ApiType, [u16, u64]>;
+      NetworkAdded: AugmentedEvent<ApiType, [u16, u16]>;
+      NetworkConnectionAdded: AugmentedEvent<ApiType, [u16, u16, u16]>;
+      NetworkConnectionRemoved: AugmentedEvent<ApiType, [u16, u16]>;
+      NetworkRemoved: AugmentedEvent<ApiType, [u16]>;
+      NeuronRegistered: AugmentedEvent<ApiType, [u16, u16, AccountId32]>;
+      PrometheusServed: AugmentedEvent<ApiType, [u16, AccountId32]>;
+      RegistrationPerIntervalSet: AugmentedEvent<ApiType, [u16, u16]>;
+      RhoSet: AugmentedEvent<ApiType, [u16, u16]>;
+      ScalingLawPowerSet: AugmentedEvent<ApiType, [u16, u16]>;
+      ServingRateLimitSet: AugmentedEvent<ApiType, [u16, u64]>;
       StakeAdded: AugmentedEvent<ApiType, [AccountId32, u64]>;
-      /**
-       * --- Event created when the stake pruning denominator has been set.
-       **/
-      StakePruningDenominatorSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when the stake pruning min has been set.
-       **/
-      StakePruningMinSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when stake has been removed from
-       * the staking account into the coldkey account.
-       **/
       StakeRemoved: AugmentedEvent<ApiType, [AccountId32, u64]>;
-      /**
-       * --- Event created when the synergy scaling law power has been set.
-       **/
-      SynergyScalingLawPowerSet: AugmentedEvent<ApiType, [u8]>;
-      /**
-       * --- Event created when the target registrations per interval has been set.
-       **/
-      TargetRegistrationsPerIntervalSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when the batch size has been set.
-       **/
-      ValidatorBatchSizeSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when the validator default epoch length has been set.
-       **/
-      ValidatorEpochLenSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when the validator default epoch per reset has been set.
-       **/
-      ValidatorEpochsPerResetSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when the validator exclude quantile has been set.
-       **/
-      ValidatorExcludeQuantileSet: AugmentedEvent<ApiType, [u8]>;
-      /**
-       * --- Event created when the validator logits divergence value has been set.
-       **/
-      ValidatorLogitsDivergenceSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when the validator pruning length has been set.
-       **/
-      ValidatorPruneLenSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * --- Event created when the sequence length has been set.
-       **/
-      ValidatorSequenceLengthSet: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * ---- Event created when a caller successfully set's their weights
-       * on the chain.
-       **/
-      WeightsSet: AugmentedEvent<ApiType, [AccountId32]>;
+      SynergyScalingLawPowerSet: AugmentedEvent<ApiType, [u16, u16]>;
+      TxRateLimitSet: AugmentedEvent<ApiType, [u64]>;
+      ValidatorBatchSizeSet: AugmentedEvent<ApiType, [u16, u16]>;
+      ValidatorEpochLengthSet: AugmentedEvent<ApiType, [u16, u16]>;
+      ValidatorEpochPerResetSet: AugmentedEvent<ApiType, [u16, u16]>;
+      ValidatorExcludeQuantileSet: AugmentedEvent<ApiType, [u16, u16]>;
+      ValidatorLogitsDivergenceSet: AugmentedEvent<ApiType, [u16, u16]>;
+      ValidatorPruneLenSet: AugmentedEvent<ApiType, [u16, u64]>;
+      ValidatorSequenceLengthSet: AugmentedEvent<ApiType, [u16, u16]>;
+      WeightsSet: AugmentedEvent<ApiType, [u16, u16]>;
+      WeightsSetRateLimitSet: AugmentedEvent<ApiType, [u16, u64]>;
+      WeightsVersionKeySet: AugmentedEvent<ApiType, [u16, u64]>;
     };
     sudo: {
       /**
@@ -238,11 +143,11 @@ declare module '@polkadot/api-base/types/events' {
       /**
        * An extrinsic failed.
        **/
-      ExtrinsicFailed: AugmentedEvent<ApiType, [dispatchError: SpRuntimeDispatchError, dispatchInfo: FrameSupportWeightsDispatchInfo], { dispatchError: SpRuntimeDispatchError, dispatchInfo: FrameSupportWeightsDispatchInfo }>;
+      ExtrinsicFailed: AugmentedEvent<ApiType, [dispatchError: SpRuntimeDispatchError, dispatchInfo: FrameSupportDispatchDispatchInfo], { dispatchError: SpRuntimeDispatchError, dispatchInfo: FrameSupportDispatchDispatchInfo }>;
       /**
        * An extrinsic completed successfully.
        **/
-      ExtrinsicSuccess: AugmentedEvent<ApiType, [dispatchInfo: FrameSupportWeightsDispatchInfo], { dispatchInfo: FrameSupportWeightsDispatchInfo }>;
+      ExtrinsicSuccess: AugmentedEvent<ApiType, [dispatchInfo: FrameSupportDispatchDispatchInfo], { dispatchInfo: FrameSupportDispatchDispatchInfo }>;
       /**
        * An account was reaped.
        **/
@@ -255,6 +160,13 @@ declare module '@polkadot/api-base/types/events' {
        * On on-chain remark happened.
        **/
       Remarked: AugmentedEvent<ApiType, [sender: AccountId32, hash_: H256], { sender: AccountId32, hash_: H256 }>;
+    };
+    transactionPayment: {
+      /**
+       * A transaction fee `actual_fee`, of which `tip` was added to the minimum inclusion fee,
+       * has been paid by `who`.
+       **/
+      TransactionFeePaid: AugmentedEvent<ApiType, [who: AccountId32, actualFee: u64, tip: u64], { who: AccountId32, actualFee: u64, tip: u64 }>;
     };
   } // AugmentedEvents
 } // declare module

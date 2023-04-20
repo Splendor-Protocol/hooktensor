@@ -68,10 +68,6 @@ import type { ClassDetails, ClassId, ClassMetadata, DepositBalance, DepositBalan
 import type { Multisig, Timepoint } from '@polkadot/types/interfaces/utility';
 import type { VestingInfo } from '@polkadot/types/interfaces/vesting';
 import type { AssetInstance, AssetInstanceV0, AssetInstanceV1, AssetInstanceV2, BodyId, BodyPart, DoubleEncodedCall, Fungibility, FungibilityV0, FungibilityV1, FungibilityV2, InboundStatus, InstructionV2, InteriorMultiLocation, Junction, JunctionV0, JunctionV1, JunctionV2, Junctions, JunctionsV1, JunctionsV2, MultiAsset, MultiAssetFilter, MultiAssetFilterV1, MultiAssetFilterV2, MultiAssetV0, MultiAssetV1, MultiAssetV2, MultiAssets, MultiAssetsV1, MultiAssetsV2, MultiLocation, MultiLocationV0, MultiLocationV1, MultiLocationV2, NetworkId, OriginKindV0, OriginKindV1, OriginKindV2, OutboundStatus, Outcome, QueryId, QueryStatus, QueueConfigData, Response, ResponseV0, ResponseV1, ResponseV2, ResponseV2Error, ResponseV2Result, VersionMigrationStage, VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation, VersionedResponse, VersionedXcm, WeightLimitV2, WildFungibility, WildFungibilityV0, WildFungibilityV1, WildFungibilityV2, WildMultiAsset, WildMultiAssetV1, WildMultiAssetV2, Xcm, XcmAssetId, XcmError, XcmErrorV0, XcmErrorV1, XcmErrorV2, XcmOrder, XcmOrderV0, XcmOrderV1, XcmOrderV2, XcmOrigin, XcmOriginKind, XcmV0, XcmV1, XcmV2, XcmVersion, XcmpMessageFormat } from '@polkadot/types/interfaces/xcm';
-import type { ProposalContents, ProposalRecord, ProposalTitle } from 'hooktensor/interfaces/signaling';
-import type { NeuronMetadata } from 'hooktensor/interfaces/subtensorModule';
-import type { Balance2 } from 'hooktensor/interfaces/treasuryRewards';
-import type { Commitments, Reveals, TallyType, VoteData, VoteOutcome, VoteRecord, VoteStage, VoteType } from 'hooktensor/interfaces/voting';
 
 declare module '@polkadot/types/types/registry' {
   interface InterfaceTypes {
@@ -148,7 +144,6 @@ declare module '@polkadot/types/types/registry' {
     BabeWeight: BabeWeight;
     BackedCandidate: BackedCandidate;
     Balance: Balance;
-    Balance2: Balance2;
     BalanceLock: BalanceLock;
     BalanceLockTo212: BalanceLockTo212;
     BalanceOf: BalanceOf;
@@ -235,7 +230,6 @@ declare module '@polkadot/types/types/registry' {
     CollatorId: CollatorId;
     CollatorSignature: CollatorSignature;
     CollectiveOrigin: CollectiveOrigin;
-    Commitments: Commitments;
     CommittedCandidateReceipt: CommittedCandidateReceipt;
     CompactAssignments: CompactAssignments;
     CompactAssignmentsTo257: CompactAssignmentsTo257;
@@ -692,7 +686,6 @@ declare module '@polkadot/types/types/registry' {
     NetworkState: NetworkState;
     NetworkStatePeerset: NetworkStatePeerset;
     NetworkStatePeersetInfo: NetworkStatePeersetInfo;
-    NeuronMetadata: NeuronMetadata;
     NewBidder: NewBidder;
     NextAuthority: NextAuthority;
     NextConfigDescriptor: NextConfigDescriptor;
@@ -809,10 +802,7 @@ declare module '@polkadot/types/types/registry' {
     PriorLock: PriorLock;
     PropIndex: PropIndex;
     Proposal: Proposal;
-    ProposalContents: ProposalContents;
     ProposalIndex: ProposalIndex;
-    ProposalRecord: ProposalRecord;
-    ProposalTitle: ProposalTitle;
     ProxyAnnouncement: ProxyAnnouncement;
     ProxyDefinition: ProxyDefinition;
     ProxyState: ProxyState;
@@ -878,7 +868,6 @@ declare module '@polkadot/types/types/registry' {
     ResponseV2Error: ResponseV2Error;
     ResponseV2Result: ResponseV2Result;
     Retriable: Retriable;
-    Reveals: Reveals;
     RewardDestination: RewardDestination;
     RewardPoint: RewardPoint;
     RoundSnapshot: RoundSnapshot;
@@ -1058,7 +1047,6 @@ declare module '@polkadot/types/types/registry' {
     SystemInherentData: SystemInherentData;
     SystemOrigin: SystemOrigin;
     Tally: Tally;
-    TallyType: TallyType;
     TaskAddress: TaskAddress;
     TAssetBalance: TAssetBalance;
     TAssetDepositBalance: TAssetDepositBalance;
@@ -1141,17 +1129,12 @@ declare module '@polkadot/types/types/registry' {
     VestingInfo: VestingInfo;
     VestingSchedule: VestingSchedule;
     Vote: Vote;
-    VoteData: VoteData;
     VoteIndex: VoteIndex;
-    VoteOutcome: VoteOutcome;
     Voter: Voter;
-    VoteRecord: VoteRecord;
     VoterInfo: VoterInfo;
     Votes: Votes;
-    VoteStage: VoteStage;
     VotesTo230: VotesTo230;
     VoteThreshold: VoteThreshold;
-    VoteType: VoteType;
     VoteWeight: VoteWeight;
     Voting: Voting;
     VotingDelegating: VotingDelegating;

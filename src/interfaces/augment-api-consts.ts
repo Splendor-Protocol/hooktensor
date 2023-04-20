@@ -6,8 +6,8 @@
 import '@polkadot/api-base/types/consts';
 
 import type { ApiTypes, AugmentedConst } from '@polkadot/api-base/types';
-import type { Vec, u128, u16, u32, u64, u8 } from '@polkadot/types-codec';
-import type { FrameSupportWeightsRuntimeDbWeight, FrameSupportWeightsWeightToFeeCoefficient, FrameSystemLimitsBlockLength, FrameSystemLimitsBlockWeights, SpVersionRuntimeVersion } from '@polkadot/types/lookup';
+import type { u16, u32, u64, u8 } from '@polkadot/types-codec';
+import type { FrameSystemLimitsBlockLength, FrameSystemLimitsBlockWeights, SpVersionRuntimeVersion, SpWeightsRuntimeDbWeight } from '@polkadot/types/lookup';
 
 export type __AugmentedConst<ApiType extends ApiTypes> = AugmentedConst<ApiType>;
 
@@ -17,7 +17,7 @@ declare module '@polkadot/api-base/types/consts' {
       /**
        * The minimum amount required to keep an account open.
        **/
-      existentialDeposit: u128 & AugmentedConst<ApiType>;
+      existentialDeposit: u64 & AugmentedConst<ApiType>;
       /**
        * The maximum number of locks that should exist on an account.
        * Not strictly enforced, but used for weight estimation.
@@ -33,136 +33,52 @@ declare module '@polkadot/api-base/types/consts' {
        * Max Authorities in use
        **/
       maxAuthorities: u32 & AugmentedConst<ApiType>;
+      /**
+       * The maximum number of entries to keep in the set id to session index mapping.
+       * 
+       * Since the `SetIdSession` map is only used for validating equivocations this
+       * value should relate to the bonding duration of whatever staking system is
+       * being used (if any). If equivocation handling is not enabled then this value
+       * can be zero.
+       **/
+      maxSetIdSessionEntries: u64 & AugmentedConst<ApiType>;
     };
     subtensorModule: {
-      /**
-       * Activity constant
-       **/
-      initialActivityCutoff: u64 & AugmentedConst<ApiType>;
-      /**
-       * Initial adjustment interval.
-       **/
-      initialAdjustmentInterval: u64 & AugmentedConst<ApiType>;
-      /**
-       * Blocks per step.
-       **/
-      initialBlocksPerStep: u64 & AugmentedConst<ApiType>;
-      /**
-       * Blocks per era.
-       **/
+      initialActivityCutoff: u16 & AugmentedConst<ApiType>;
+      initialAdjustmentInterval: u16 & AugmentedConst<ApiType>;
       initialBondsMovingAverage: u64 & AugmentedConst<ApiType>;
-      /**
-       * Initial registration difficulty.
-       **/
+      initialBurn: u64 & AugmentedConst<ApiType>;
+      initialDefaultTake: u16 & AugmentedConst<ApiType>;
       initialDifficulty: u64 & AugmentedConst<ApiType>;
-      /**
-       * Initial foundation distribution
-       **/
-      initialFoundationDistribution: u64 & AugmentedConst<ApiType>;
-      /**
-       * Immunity Period Constant.
-       **/
-      initialImmunityPeriod: u64 & AugmentedConst<ApiType>;
-      /**
-       * Initial incentive pruning denominator
-       **/
-      initialIncentivePruningDenominator: u64 & AugmentedConst<ApiType>;
-      /**
-       * Initial registration difficulty.
-       **/
+      initialEmissionValue: u16 & AugmentedConst<ApiType>;
+      initialImmunityPeriod: u16 & AugmentedConst<ApiType>;
       initialIssuance: u64 & AugmentedConst<ApiType>;
-      /**
-       * Kappa constant
-       **/
-      initialKappa: u64 & AugmentedConst<ApiType>;
-      /**
-       * Initial allowed max min weight ratio
-       **/
-      initialMaxAllowedMaxMinRatio: u64 & AugmentedConst<ApiType>;
-      /**
-       * Max UID constant.
-       **/
-      initialMaxAllowedUids: u64 & AugmentedConst<ApiType>;
-      /**
-       * Initial max registrations per block.
-       **/
-      initialMaxRegistrationsPerBlock: u64 & AugmentedConst<ApiType>;
-      /**
-       * Initial max weight limit.
-       **/
-      initialMaxWeightLimit: u32 & AugmentedConst<ApiType>;
-      /**
-       * Initial min allowed weights.
-       **/
-      initialMinAllowedWeights: u64 & AugmentedConst<ApiType>;
-      /**
-       * Rho constant
-       **/
-      initialRho: u64 & AugmentedConst<ApiType>;
-      /**
-       * Initial scaling law power.
-       **/
-      initialScalingLawPower: u8 & AugmentedConst<ApiType>;
-      /**
-       * Initial stake pruning denominator
-       **/
-      initialStakePruningDenominator: u64 & AugmentedConst<ApiType>;
-      /**
-       * Initial stake pruning min
-       **/
-      initialStakePruningMin: u64 & AugmentedConst<ApiType>;
-      /**
-       * Initial synergy scaling law power.
-       **/
-      initialSynergyScalingLawPower: u8 & AugmentedConst<ApiType>;
-      /**
-       * Initial target registrations per interval.
-       **/
-      initialTargetRegistrationsPerInterval: u64 & AugmentedConst<ApiType>;
-      /**
-       * Default Batch size.
-       **/
-      initialValidatorBatchSize: u64 & AugmentedConst<ApiType>;
-      /**
-       * Default Epoch length.
-       **/
-      initialValidatorEpochLen: u64 & AugmentedConst<ApiType>;
-      /**
-       * Default Reset length.
-       **/
-      initialValidatorEpochsPerReset: u64 & AugmentedConst<ApiType>;
-      /**
-       * Initial validator exclude quantile.
-       **/
-      initialValidatorExcludeQuantile: u8 & AugmentedConst<ApiType>;
-      /**
-       * Initial validator logits divergence penalty/threshold.
-       **/
-      initialValidatorLogitsDivergence: u64 & AugmentedConst<ApiType>;
-      /**
-       * Initial validator context pruning length.
-       **/
+      initialKappa: u16 & AugmentedConst<ApiType>;
+      initialMaxAllowedUids: u16 & AugmentedConst<ApiType>;
+      initialMaxAllowedValidators: u16 & AugmentedConst<ApiType>;
+      initialMaxBurn: u64 & AugmentedConst<ApiType>;
+      initialMaxDifficulty: u64 & AugmentedConst<ApiType>;
+      initialMaxRegistrationsPerBlock: u16 & AugmentedConst<ApiType>;
+      initialMaxWeightsLimit: u16 & AugmentedConst<ApiType>;
+      initialMinAllowedWeights: u16 & AugmentedConst<ApiType>;
+      initialMinBurn: u64 & AugmentedConst<ApiType>;
+      initialMinDifficulty: u64 & AugmentedConst<ApiType>;
+      initialPruningScore: u16 & AugmentedConst<ApiType>;
+      initialRho: u16 & AugmentedConst<ApiType>;
+      initialScalingLawPower: u16 & AugmentedConst<ApiType>;
+      initialServingRateLimit: u64 & AugmentedConst<ApiType>;
+      initialSynergyScalingLawPower: u16 & AugmentedConst<ApiType>;
+      initialTargetRegistrationsPerInterval: u16 & AugmentedConst<ApiType>;
+      initialTempo: u16 & AugmentedConst<ApiType>;
+      initialTxRateLimit: u64 & AugmentedConst<ApiType>;
+      initialValidatorBatchSize: u16 & AugmentedConst<ApiType>;
+      initialValidatorEpochLen: u16 & AugmentedConst<ApiType>;
+      initialValidatorEpochsPerReset: u16 & AugmentedConst<ApiType>;
+      initialValidatorExcludeQuantile: u16 & AugmentedConst<ApiType>;
+      initialValidatorLogitsDivergence: u16 & AugmentedConst<ApiType>;
       initialValidatorPruneLen: u64 & AugmentedConst<ApiType>;
-      /**
-       * Default Batch size.
-       **/
-      initialValidatorSequenceLen: u64 & AugmentedConst<ApiType>;
-      /**
-       * Maximum registration difficulty
-       **/
-      maximumDifficulty: u64 & AugmentedConst<ApiType>;
-      /**
-       * Minimum registration difficulty
-       **/
-      minimumDifficulty: u64 & AugmentedConst<ApiType>;
-      /**
-       * Debug is on
-       **/
-      sDebug: u64 & AugmentedConst<ApiType>;
-      /**
-       * SelfOwnership constant
-       **/
-      selfOwnership: u64 & AugmentedConst<ApiType>;
+      initialValidatorSequenceLen: u16 & AugmentedConst<ApiType>;
+      initialWeightsVersionKey: u64 & AugmentedConst<ApiType>;
     };
     system: {
       /**
@@ -180,9 +96,9 @@ declare module '@polkadot/api-base/types/consts' {
       /**
        * The weight of runtime database operations the runtime can invoke.
        **/
-      dbWeight: FrameSupportWeightsRuntimeDbWeight & AugmentedConst<ApiType>;
+      dbWeight: SpWeightsRuntimeDbWeight & AugmentedConst<ApiType>;
       /**
-       * The designated SS85 prefix of this chain.
+       * The designated SS58 prefix of this chain.
        * 
        * This replaces the "ss58Format" property declared in the chain spec. Reason is
        * that the runtime should know about the prefix in order to make use of it as
@@ -228,14 +144,6 @@ declare module '@polkadot/api-base/types/consts' {
        * transactions.
        **/
       operationalFeeMultiplier: u8 & AugmentedConst<ApiType>;
-      /**
-       * The fee to be paid for making a transaction; the per-byte portion.
-       **/
-      transactionByteFee: u128 & AugmentedConst<ApiType>;
-      /**
-       * The polynomial that is applied in order to derive fee from weight.
-       **/
-      weightToFee: Vec<FrameSupportWeightsWeightToFeeCoefficient> & AugmentedConst<ApiType>;
     };
   } // AugmentedConsts
 } // declare module
