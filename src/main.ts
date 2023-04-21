@@ -214,7 +214,7 @@ async function getNeurons(api: ApiPromise, netuid: number): Promise<NeuronInfoLi
     })
 };
 
-async function getDifficulty(api: ApiPromise): Promise<{ [key: string]: number}> {
+async function getDifficulties(api: ApiPromise): Promise<{ [key: string]: number}> {
     const netuids = await getNetuids(api);
     let difficulty: { [key: string]: number} = {};
     for (let netuid of netuids) {
@@ -222,6 +222,10 @@ async function getDifficulty(api: ApiPromise): Promise<{ [key: string]: number}>
         difficulty[netuid.toString()] = diff;
     }
     return difficulty;
+}
+
+async function getDifficulty(api: ApiPromise, netuid: number): Promise<number> {
+  return (await (api.query.subtensorModule as any).difficulty(netuid)).toNumber();
 }
 
 async function getBurnAmounts(api: ApiPromise): Promise<{ [key: string]: number}> {
@@ -232,6 +236,10 @@ async function getBurnAmounts(api: ApiPromise): Promise<{ [key: string]: number}
       burn_amounts[netuid.toString()] = diff;
   }
   return burn_amounts;
+}
+
+async function getBurnAmount(api: ApiPromise, netuid: number): Promise<number> {
+  return (await (api.query.subtensorModule as any).burn(netuid)).toNumber();
 }
 
 function sleep(ms: number) {
@@ -361,105 +369,79 @@ async function watchForEpoch(api: ApiPromise, webhook_url: string) {
     }, blocksPerStep * block_time * 1000); // check every epoch
 }
 
-async function watchForDifficulty(api: ApiPromise, webhook_url: string): Promise<any> {
-    console.log("Getting initial difficulty info...");
-    let current_difficulties = await getDifficulty(api);
-    
-    const current_block: number = (await (api.rpc as any).chain.getHeader()).number.toNumber();
-    const netuids = await getNetuids(api);
 
-  let adjustmentIntervals: number[] = [];
-  let minAdjustmentInterval: number = Number.MAX_SAFE_INTEGER;
-  let minNetuid: number = -1;
-  for (const netuid in netuids) {
-      const adjustmentInterval_ = ((await (api.query.subtensorModule as any).adjustmentInterval(netuid))).toNumber();
-      if (adjustmentInterval_ < minAdjustmentInterval) {
-          minAdjustmentInterval = adjustmentInterval_;
-          minNetuid = netuid as any as number;
-      }
-      adjustmentIntervals.push(adjustmentInterval_);
-  }
-  const adjustmentInterval: number = getBestAdjustmentInterval(adjustmentIntervals);
-  console.log(`Best adjustment interval: ${adjustmentInterval}`)
+async function subscribeToDifficulty(api: ApiPromise, netuid: number, webhook_url: string): Promise<any> {
+  console.log(`Subscribing to difficulty for netuid ${netuid}`);
 
-  let lastDifficultyAdjustmentBlock: number = ((await (api.query.subtensorModule as any).lastAdjustmentBlock(minNetuid))).toNumber();
-    console.log("Done getting initial difficulty info.");
+  let current_difficulty = await getDifficulty(api, netuid);
 
-    const blocks_till_next_difficulty = adjustmentInterval - (current_block - lastDifficultyAdjustmentBlock);
-    await sleep(blocks_till_next_difficulty * block_time * 1000); // sleep until next difficulty adjustment
+  const unsub = await api.query.subtensorModule.difficulty(netuid, (difficulty: any) => {
+    const new_difficulty = difficulty.toNumber();
+    if (new_difficulty !== current_difficulty) {
+      console.log("Difficulty changed for netuid " + netuid);
+      const old_diff_formatted = difficultyFormatter.format(current_difficulty);
 
-    let intervalID = setInterval(async () => {
-        console.log("Checking for difficulty change...");
-        let new_difficulties = await getDifficulty(api);
-        for (let netuid in new_difficulties) {
-            const old_diff_formatted = current_difficulties[netuid] ? difficultyFormatter.format(current_difficulties[netuid]) : undefined;
-            if (new_difficulties[netuid] !== current_difficulties[netuid]) {
-                console.info("Difficulty changed for netuid " + netuid);
-                console.info(`New difficulty: ${new_difficulties[netuid]}`);
-                console.info("Posting to webhook...");
-                let message = `(Netuid ${netuid}) - :pick: Difficulty changed from ${old_diff_formatted || "None"} to ${difficultyFormatter.format(new_difficulties[netuid])}`;
-                post_to_webhook(
-                    webhook_url,
-                    message
-                );
-                current_difficulties[netuid] = new_difficulties[netuid];
-            }
-        }
-        console.log("Done.");
-    }, adjustmentInterval * block_time * 1000); // check every difficulty adjustment
+      console.info(`New difficulty: ${difficultyFormatter.format(new_difficulty)}`);
+      console.info("Posting to webhook...");
+      let message = `(Netuid ${netuid}) - :pick: Difficulty changed from ${old_diff_formatted || "None"} to ${difficultyFormatter.format(new_difficulty)}`;
+      post_to_webhook(
+          webhook_url,
+          message
+      );
+    }
 
-    return intervalID;
+    current_difficulty = new_difficulty;
+  });
+
+  return unsub;
 }
 
-async function watchForBurnAmount(api: ApiPromise, webhook_url: string) {
-  console.log("Getting initial burn amount info...");
-  let current_burn_amounts = await getBurnAmounts(api);
-  
-  const current_block: number = (await( api.rpc as any).chain.getHeader()).number.toNumber();
+async function watchForDifficulty(api: ApiPromise, webhook_url: string): Promise<any[]> {
+    const netuids = await getNetuids(api);
+
+    const unsubscribes = await Promise.all(netuids.map(async (netuid) => {
+        return await subscribeToDifficulty(api, netuid, webhook_url);
+    }));
+
+    return unsubscribes;
+}
+
+async function subscribeToBurnAmount(api: ApiPromise, netuid: number, webhook_url: string): Promise<any> {
+    console.log(`Subscribing to burn amount for netuid ${netuid}`);
+
+    let old_burn_amount = await getBurnAmount(api, netuid);
+    
+    const unsub = await api.query.subtensorModule.burn(netuid, (burnAmount: any) => {
+        const new_burn_amount = burnAmount.toNumber();
+
+        if (new_burn_amount !== old_burn_amount) {
+
+          const old_as_balance = balanceFormatter(old_burn_amount);
+
+          console.info("Burn amount changed for netuid " + netuid);
+          console.info(`New burn amount: ${burnAmount} TAO`);
+          console.info("Posting to webhook...");
+          let message = `(Netuid ${netuid}) - :recycle: Recycle Amount changed from ${old_as_balance || "None"} \u03C4 to ${balanceFormatter(burnAmount)} \u03C4`;
+          post_to_webhook(
+              webhook_url,
+              message
+          );
+        }
+
+        old_burn_amount = new_burn_amount;
+    });
+
+    return unsub;
+}
+ 
+async function watchForBurnAmount(api: ApiPromise, webhook_url: string): Promise<any[]>{
   const netuids = await getNetuids(api);
 
-  let adjustmentIntervals: number[] = [];
-  let minAdjustmentInterval: number = Number.MAX_SAFE_INTEGER;
-  let minNetuid: number = -1;
-  for (const netuid in netuids) {
-      const adjustmentInterval_ = ((await (api.query.subtensorModule as any).adjustmentInterval(netuid))).toNumber();
-      if (adjustmentInterval_ < minAdjustmentInterval) {
-          minAdjustmentInterval = adjustmentInterval_;
-          minNetuid = netuid as any as number;
-      }
-      adjustmentIntervals.push(adjustmentInterval_);
-  }
-  const adjustmentInterval: number = getBestAdjustmentInterval(adjustmentIntervals);
-  console.log(`Best adjustment interval: ${adjustmentInterval}`)
+  const unsubscribes = await Promise.all(netuids.map(async (netuid) => {
+      return await subscribeToBurnAmount(api, netuid, webhook_url);
+  }));
 
-  let lastDifficultyAdjustmentBlock: number = ((await (api.query.subtensorModule as any).lastAdjustmentBlock(minNetuid))).toNumber();
-  console.log("Done getting initial difficulty info.");
-
-  const blocks_till_next_difficulty = adjustmentInterval - (current_block - lastDifficultyAdjustmentBlock);
-  await sleep(blocks_till_next_difficulty * block_time * 1000); // sleep until next difficulty adjustment
-
-  let intervalID = setInterval(async () => {
-      console.log("Checking for burn amount changes...");
-      let new_burn_amounts = await getBurnAmounts(api);
-      for (let netuid in new_burn_amounts) {
-          if (new_burn_amounts[netuid] !== current_burn_amounts[netuid]) {
-              const old_as_balance = current_burn_amounts[netuid] ? balanceFormatter(current_burn_amounts[netuid]) : undefined;
-
-              console.info("Burn amount changed for netuid " + netuid);
-              console.info(`New burn amount: ${new_burn_amounts[netuid]} TAO`);
-              console.info("Posting to webhook...");
-              let message = `(Netuid ${netuid}) - :recycle: Recycle Amount changed from ${old_as_balance || "None"} \u03C4 to ${balanceFormatter(new_burn_amounts[netuid])} \u03C4`;
-              post_to_webhook(
-                  webhook_url,
-                  message
-              );
-              current_burn_amounts[netuid] = new_burn_amounts[netuid];
-          }
-      }
-      console.log("Done.");
-  }, adjustmentInterval * block_time * 1000); // check every difficulty adjustment
-
-  return intervalID;
+  return unsubscribes;
 }
 
 export async function watch(url: string, webhook_url: string, interval: number) {
@@ -478,21 +460,21 @@ export async function watch(url: string, webhook_url: string, interval: number) 
     current_meta = await refreshMeta(api);
     console.log("Done...");
 
-    let new_netuid = true;
-    let watchDiffIntervalID, watchBurnIntervalID;
+    // Start watching for difficulty changes
+    let unsubscribes_diff = await watchForDifficulty(api, webhook_url);
+    let unsubscribes_burn = await watchForBurnAmount(api, webhook_url);
+
+    let new_netuid = null;
     // watch for changes in metagraph to detect registration changes
     while (true) {
-        if (new_netuid) {
-          if (watchDiffIntervalID) {
-            clearInterval(watchDiffIntervalID);
-          }
-          if (watchBurnIntervalID) {
-            clearInterval(watchBurnIntervalID);
-          }
-          //watchForEpoch(api, webhook_url); // watch for new epochs
-          watchDiffIntervalID = await watchForDifficulty(api, webhook_url); // watch for difficulty changes
-          watchBurnIntervalID = await watchForBurnAmount(api, webhook_url); // watch for burn amount changes
-          new_netuid = false;
+        if (new_netuid !== null) {
+          let unsub_burn = subscribeToBurnAmount(api, parseInt(new_netuid), webhook_url);
+          let unsub_diff = subscribeToDifficulty(api, parseInt(new_netuid), webhook_url);
+
+          unsubscribes_burn.push(unsub_burn);
+          unsubscribes_diff.push(unsub_diff);
+          
+          new_netuid = null;
         }
   
         console.log(`Sleeping for ${interval/1000} seconds`);
@@ -506,7 +488,7 @@ export async function watch(url: string, webhook_url: string, interval: number) 
         for (let netuid in new_meta) {
           if (current_meta[netuid] === undefined) {
             // new netuid
-            new_netuid = true;
+            new_netuid = netuid;
             let message = `New netuid ${netuid} registered`;
             post_to_webhook(
               webhook_url,
